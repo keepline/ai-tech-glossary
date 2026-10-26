@@ -48,7 +48,7 @@ export default function App() {
       </main>
 
       <footer className="relative z-10 shrink-0 px-4 py-2 text-center text-[10px] text-[#4a4a5c] border-t border-white/4">
-        独立梳理的行业技术术语参考 · 不隶属任何公司或产品 · 仅供学习交流
+        独立梳理的行业技术术语参考 · 作者:ryuuuuu · 仅供学习交流
       </footer>
     </div>
   )
