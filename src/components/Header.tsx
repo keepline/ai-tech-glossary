@@ -23,41 +23,22 @@ export default function Header({
       <div className="chrome-bar px-4 sm:px-6 py-3.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{
-                background:
-                  'linear-gradient(135deg, #7c6cff44, #22d3ee33)',
-                border: '1px solid #ffffff14',
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="16"
-                  stroke="url(#hg)"
-                  strokeWidth="3"
-                />
-                <circle cx="32" cy="18" r="3" fill="#7c6cff" />
-                <circle cx="44" cy="38" r="3" fill="#22d3ee" />
-                <circle cx="20" cy="38" r="3" fill="#f472b6" />
-                <defs>
-                  <linearGradient id="hg" x1="14" y1="14" x2="50" y2="50">
-                    <stop stopColor="#7c6cff" />
-                    <stop offset="1" stopColor="#22d3ee" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
+            <img
+              src={`${import.meta.env.BASE_URL}brand-logo.svg`}
+              alt=""
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-xl shrink-0"
+              aria-hidden
+            />
             <div className="min-w-0">
               <h1 className="text-[15px] sm:text-base font-bold tracking-tight text-white truncate">
                 AI 技术术语图谱
-                <span className="text-[#6b6b80] font-medium ml-2 text-xs sm:text-sm">
+                <span className="text-[var(--text-quiet)] font-medium ml-2 text-xs sm:text-sm">
                   2024–2026
                 </span>
               </h1>
-              <p className="text-[11px] text-[#6b6b80] truncate">
+              <p className="text-[12px] text-[var(--text-secondary)] truncate leading-snug">
                 {termCount} 个高信号词条 · 关系链可视化 · 纯静态前端
               </p>
             </div>
@@ -81,7 +62,7 @@ export default function Header({
 
         {view === 'graph' && (
           <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-white/5">
-            <span className="text-[10px] uppercase tracking-wider text-[#5a5a70] mr-1">
+            <span className="text-[10px] uppercase tracking-wider text-[var(--text-quiet)] mr-1">
               分类
             </span>
             <Chip
@@ -102,13 +83,13 @@ export default function Header({
               />
             ))}
             <span className="hidden lg:inline-block w-px h-4 bg-white/10 mx-2" />
-            <span className="hidden lg:inline text-[10px] uppercase tracking-wider text-[#5a5a70] mr-1">
+            <span className="hidden lg:inline text-[10px] uppercase tracking-wider text-[var(--text-quiet)] mr-1">
               关系
             </span>
             {(Object.keys(RELATION_META) as RelationType[]).map((k) => (
               <span
                 key={k}
-                className="hidden lg:inline-flex items-center gap-1 text-[10px] text-[#8b8ba0]"
+                className="hidden lg:inline-flex items-center gap-1 text-[11px] text-[var(--text-secondary)]"
               >
                 <span
                   className="w-3 h-0.5 rounded-full"
@@ -140,7 +121,7 @@ function Tab({
       className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-medium transition-all ${
         active
           ? 'bg-white/10 text-white shadow-sm'
-          : 'text-[#8b8ba0] hover:text-white'
+          : 'text-[var(--text-secondary)] hover:text-white'
       }`}
     >
       {label}
@@ -167,7 +148,9 @@ function Chip({
       title={title}
       onClick={onClick}
       className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
-        active ? '' : 'text-[#8b8ba0] border-white/10 hover:border-white/20'
+        active
+          ? ''
+          : 'text-[var(--text-secondary)] border-white/10 hover:border-white/20'
       }`}
       style={
         active

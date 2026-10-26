@@ -51,9 +51,11 @@ export default function DetailPanel({ termId, onClose, onSelect }: Props) {
               <h2 className="text-xl font-bold tracking-tight text-white truncate">
                 {term.en}
               </h2>
-              <p className="text-sm text-[#a0a0b8] mt-0.5">{term.zh}</p>
+              <p className="text-sm text-[var(--text-zh,#b4b4c6)] mt-0.5">
+                {term.zh}
+              </p>
               {term.yearHint && (
-                <p className="text-[11px] font-mono text-[#6b6b80] mt-1.5">
+                <p className="text-[11px] font-mono text-[var(--text-quiet)] mt-1.5">
                   {term.yearHint}
                 </p>
               )}
@@ -61,7 +63,7 @@ export default function DetailPanel({ termId, onClose, onSelect }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[#8b8ba0] hover:text-white hover:bg-white/8 transition-colors"
+              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-white/8 transition-colors"
               aria-label="关闭"
             >
               ✕
@@ -70,26 +72,26 @@ export default function DetailPanel({ termId, onClose, onSelect }: Props) {
 
           <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5">
             <section>
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[#6b6b80] mb-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-quiet)] mb-2">
                 解读
               </h3>
-              <p className="text-[13.5px] leading-relaxed text-[#d0d0e0]">
+              <p className="text-[14.5px] leading-[1.7] text-[var(--text-primary)]">
                 {term.explanation}
               </p>
             </section>
 
             <section>
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[#6b6b80] mb-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-quiet)] mb-2">
                 为何重要
               </h3>
-              <p className="text-[13.5px] leading-relaxed text-[#d0d0e0]">
+              <p className="text-[14.5px] leading-[1.7] text-[var(--text-primary)]">
                 {term.whyItMatters}
               </p>
             </section>
 
             {related.length > 0 && (
               <section>
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[#6b6b80] mb-2">
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-quiet)] mb-2">
                   相关词条 · {related.length}
                 </h3>
                 <ul className="space-y-1.5">
@@ -122,9 +124,9 @@ export default function DetailPanel({ termId, onClose, onSelect }: Props) {
                             {CATEGORY_META[r.category].short}
                           </span>
                         </div>
-                        <div className="text-[13px] font-medium text-white group-hover:text-[#c4b5fd] transition-colors">
+                        <div className="text-[13.5px] font-medium text-white group-hover:text-[#c4b5fd] transition-colors">
                           {r.en}
-                          <span className="text-[#8b8ba0] font-normal ml-1.5">
+                          <span className="text-[var(--text-zh,#b4b4c6)] font-normal ml-1.5">
                             {r.zh}
                           </span>
                         </div>

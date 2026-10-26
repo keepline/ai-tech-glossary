@@ -14,10 +14,19 @@ import {
 } from '@xyflow/react'
 import TermNode, { type TermFlowNode } from './TermNode'
 import { terms, edges as dataEdges } from '../data/terms'
-import { CATEGORY_META, RELATION_META } from '../types'
+import { CATEGORY_META, RELATION_META, type RelationType } from '../types'
 import { layoutPositions } from '../lib/layout'
 
 const nodeTypes: NodeTypes = { term: TermNode }
+
+/** Subtle dash encoding by relation — precise, not noisy */
+const RELATION_DASH: Record<RelationType, string | undefined> = {
+  enables: undefined,
+  'part-of': '5 3',
+  'alternative-to': '2 3',
+  'stacks-with': undefined,
+  'evolved-from': '7 3 2 3',
+}
 
 interface Props {
   selectedId: string | null
@@ -32,6 +41,16 @@ export default function GraphView({
 }: Props) {
   const positions = useMemo(() => layoutPositions(), [])
 
+  const adjacentIds = useMemo(() => {
+    if (!selectedId) return null
+    const set = new Set<string>([selectedId])
+    for (const e of dataEdges) {
+      if (e.source === selectedId) set.add(e.target)
+      if (e.target === selectedId) set.add(e.source)
+    }
+    return set
+  }, [selectedId])
+
   const initialNodes: TermFlowNode[] = useMemo(
     () =>
       terms.map((t) => ({
@@ -42,10 +61,11 @@ export default function GraphView({
           label: t.en,
           zh: t.zh,
           category: t.category,
+          dimmed: Boolean(adjacentIds && !adjacentIds.has(t.id)),
         },
         hidden: categoryFilter ? t.category !== categoryFilter : false,
       })),
-    [positions, categoryFilter],
+    [positions, categoryFilter, adjacentIds],
   )
 
   const initialEdges: RFEdge[] = useMemo(
@@ -61,6 +81,7 @@ export default function GraphView({
         )
         const highlight =
           selectedId && (e.source === selectedId || e.target === selectedId)
+        const dash = RELATION_DASH[e.type]
         return {
           id: `e-${i}-${e.source}-${e.target}`,
           source: e.source,
@@ -69,27 +90,29 @@ export default function GraphView({
           animated: Boolean(highlight),
           hidden,
           style: {
-            stroke: highlight ? meta.color : meta.color + '55',
-            strokeWidth: highlight ? 2.2 : 1.1,
+            stroke: meta.color,
+            strokeOpacity: highlight ? 1 : 0.6,
+            strokeWidth: highlight ? 2.6 : 1.35,
+            ...(dash ? { strokeDasharray: dash } : {}),
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: highlight ? meta.color : meta.color + '88',
-            width: 14,
-            height: 14,
+            color: highlight ? meta.color : meta.color,
+            width: highlight ? 16 : 13,
+            height: highlight ? 16 : 13,
           },
           label: highlight ? meta.zh : undefined,
           labelStyle: {
-            fill: '#c8c8d8',
-            fontSize: 10,
-            fontWeight: 500,
+            fill: '#e8e8f0',
+            fontSize: 11.5,
+            fontWeight: 600,
           },
           labelBgStyle: {
-            fill: '#0e0e16',
-            fillOpacity: 0.85,
+            fill: '#12121c',
+            fillOpacity: 0.92,
           },
-          labelBgPadding: [4, 6] as [number, number],
-          labelBgBorderRadius: 4,
+          labelBgPadding: [5, 8] as [number, number],
+          labelBgBorderRadius: 5,
         }
       }),
     [categoryFilter, selectedId],
@@ -111,9 +134,13 @@ export default function GraphView({
       nds.map((n) => ({
         ...n,
         selected: n.id === selectedId,
+        data: {
+          ...n.data,
+          dimmed: Boolean(adjacentIds && !adjacentIds.has(n.id)),
+        },
       })),
     )
-  }, [selectedId, setNodes])
+  }, [selectedId, adjacentIds, setNodes])
 
   const onNodeClick = useCallback(
     (_: MouseEvent, node: TermFlowNode) => {
@@ -146,8 +173,8 @@ export default function GraphView({
         <Background
           variant={BackgroundVariant.Dots}
           gap={22}
-          size={1.2}
-          color="#ffffff10"
+          size={1.1}
+          color="#ffffff08"
         />
         <Controls showInteractive={false} position="bottom-left" />
         <MiniMap
@@ -157,9 +184,9 @@ export default function GraphView({
             const cat = (n.data as { category?: string })?.category
             return cat && cat in CATEGORY_META
               ? CATEGORY_META[cat as keyof typeof CATEGORY_META].color
-              : '#666'
+              : '#888'
           }}
-          maskColor="rgba(7,7,12,0.7)"
+          maskColor="rgba(7,7,12,0.75)"
           pannable
           zoomable
         />

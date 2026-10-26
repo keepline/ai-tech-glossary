@@ -47,7 +47,7 @@ export default function ListView({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-28">
         <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-4 bg-[#07070c]/95 backdrop-blur-md border-b border-white/5">
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b6b80] text-sm">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-quiet)] text-sm">
               ⌕
             </span>
             <input
@@ -55,7 +55,7 @@ export default function ListView({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索英文 / 中文 / 释义…"
-              className="w-full rounded-xl bg-white/5 border border-white/10 pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-[#6b6b80] outline-none focus:border-[#7c6cff]/60 focus:ring-1 focus:ring-[#7c6cff]/30 transition"
+              className="w-full rounded-xl bg-white/5 border border-white/10 pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-[var(--text-quiet)] outline-none focus:border-[#7c6cff]/60 focus:ring-1 focus:ring-[#7c6cff]/30 transition"
             />
           </div>
           <div className="flex flex-wrap gap-1.5 mt-3">
@@ -76,7 +76,7 @@ export default function ListView({
               />
             ))}
           </div>
-          <p className="text-[11px] text-[#6b6b80] mt-2 font-mono">
+          <p className="text-[12px] text-[var(--text-quiet)] mt-2 font-mono">
             {filtered.length} / {terms.length} 词条
           </p>
         </div>
@@ -92,7 +92,7 @@ export default function ListView({
                 <h2 className="text-sm font-semibold text-white">
                   {g.category}
                 </h2>
-                <span className="text-[11px] text-[#6b6b80] font-mono">
+                <span className="text-[12px] text-[var(--text-quiet)] font-mono">
                   {g.items.length}
                 </span>
               </div>
@@ -121,19 +121,19 @@ export default function ListView({
                       }
                     >
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="font-semibold text-[14px] text-white">
+                        <span className="font-semibold text-[14.5px] text-white">
                           {t.en}
                         </span>
                         {t.yearHint && (
-                          <span className="text-[10px] font-mono text-[#5a5a70] shrink-0">
+                          <span className="text-[11px] font-mono text-[var(--text-quiet)] shrink-0">
                             {t.yearHint}
                           </span>
                         )}
                       </div>
-                      <div className="text-[12px] text-[#9a9ab0] mt-0.5">
+                      <div className="text-[13px] text-[var(--text-zh,#b4b4c6)] mt-0.5">
                         {t.zh}
                       </div>
-                      <p className="text-[12px] text-[#707088] mt-2 line-clamp-2 leading-relaxed">
+                      <p className="text-[13px] text-[var(--text-secondary)] mt-2 line-clamp-2 leading-[1.7]">
                         {t.explanation}
                       </p>
                     </motion.button>
@@ -143,7 +143,7 @@ export default function ListView({
             </section>
           ))}
           {filtered.length === 0 && (
-            <p className="text-center text-[#6b6b80] py-16 text-sm">
+            <p className="text-center text-[var(--text-quiet)] py-16 text-sm">
               没有匹配的词条，试试其他关键词。
             </p>
           )}
@@ -171,7 +171,7 @@ function FilterChip({
       className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
         active
           ? 'text-white border-transparent'
-          : 'text-[#8b8ba0] border-white/10 hover:border-white/20 hover:text-white'
+          : 'text-[var(--text-secondary)] border-white/10 hover:border-white/20 hover:text-white'
       }`}
       style={
         active
