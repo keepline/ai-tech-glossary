@@ -55,6 +55,20 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Header / footer: dark low-sat diagonal stripe, translucent */
+.chrome-bar {
+  background-color: rgba(10, 10, 14, 0.78);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.045) 0px,
+    rgba(255, 255, 255, 0.045) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
