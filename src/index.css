@@ -1,0 +1,125 @@
+@import 'tailwindcss';
+@import '@xyflow/react/dist/style.css';
+
+@theme {
+  --font-sans: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-ink: #07070c;
+  --color-panel: #0e0e16;
+  --color-panel-2: #14141f;
+  --color-line: #ffffff12;
+  --color-muted: #8b8ba0;
+  --color-fg: #e8e8f0;
+  --color-accent: #7c6cff;
+  --color-accent-2: #22d3ee;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-ink);
+  color: var(--color-fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient background */
+.app-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(124, 108, 255, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(34, 211, 238, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(244, 114, 182, 0.08), transparent 55%),
+    var(--color-ink);
+}
+
+/* Glass panel */
+.glass {
+  background: rgba(14, 14, 22, 0.72);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-line);
+}
+
+.glass-strong {
+  background: rgba(18, 18, 28, 0.88);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* React Flow dark overrides */
+.react-flow__background {
+  background: transparent !important;
+}
+.react-flow__controls {
+  background: rgba(14, 14, 22, 0.9) !important;
+  border: 1px solid var(--color-line) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-line) !important;
+  fill: #c8c8d8 !important;
+}
+.react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+.react-flow__minimap {
+  background: rgba(14, 14, 22, 0.9) !important;
+  border: 1px solid var(--color-line) !important;
+  border-radius: 12px !important;
+}
+.react-flow__edge-path {
+  stroke-linecap: round;
+}
+.react-flow__attribution {
+  display: none !important;
+}
+
+/* Selection ring */
+.term-node {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.term-node.selected {
+  box-shadow: 0 0 0 2px var(--node-color), 0 0 24px var(--node-glow);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s ease both;
+}
