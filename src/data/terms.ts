@@ -78,6 +78,18 @@ export const terms: Term[] = [
     yearHint: '2024+',
   },
 
+  {
+    id: 'diffusion-lm',
+    en: 'Diffusion LM / DLM',
+    zh: '扩散语言模型',
+    category: '模型架构',
+    explanation:
+      '用迭代去噪/解掩码并行生成多 token 的语言模型范式，与从左到右自回归解码相对。近年在吞吐与可控生成上受关注，但仍需缩小与同规模自回归模型的质量差距并补齐推理栈。',
+    whyItMatters:
+      '挑战「语言必须自回归」的默认假设；与图像扩散同源思想，是并行生成与统一多模态生成的重要交叉点。近两日 HF Papers 与 arXiv 上 ALoDLM、I-DLM、Speculative Diffusion 等持续出现。',
+    yearHint: '2024–2026',
+  },
+
   // ── 训练与对齐 ────────────────────────────────────────
   {
     id: 'sft',
@@ -365,6 +377,17 @@ export const terms: Term[] = [
       '是文档智能、GUI Agent、多模态助手的核心模型形态，2024 后迅速成为标配能力。',
   },
   {
+    id: 'vla',
+    en: 'VLA',
+    zh: '视觉-语言-动作模型',
+    category: '多模态',
+    explanation:
+      'Vision-Language-Action：在视觉-语言模型之上直接输出机器人控制动作（或动作专家头），把感知、指令理解与控制策略端到端（或近端到端）打通。常与世界模型、模仿学习与真机评测配套。',
+    whyItMatters:
+      '具身智能从「会看会说」走向「会做」的主流范式；OpenVLA / π0 等开源线与大量 2025–2026 论文把它推到工业与学术前线。',
+    yearHint: '2024–2026',
+  },
+  {
     id: 'diffusion',
     en: 'Diffusion Model',
     zh: '扩散模型',
@@ -542,6 +565,9 @@ export const edges: Edge[] = [
   { source: 'mla', target: 'kv-cache', type: 'enables' },
   { source: 'dit', target: 'transformer', type: 'stacks-with' },
   { source: 'dit', target: 'diffusion', type: 'part-of' },
+  { source: 'diffusion-lm', target: 'diffusion', type: 'evolved-from' },
+  { source: 'diffusion-lm', target: 'transformer', type: 'alternative-to' },
+  { source: 'diffusion-lm', target: 'speculative-decoding', type: 'stacks-with' },
 
   // 训练链路
   { source: 'sft', target: 'transformer', type: 'stacks-with' },
@@ -593,6 +619,9 @@ export const edges: Edge[] = [
   { source: 'omni-model', target: 'vlm', type: 'evolved-from' },
   { source: 'omni-model', target: 'whisper-asr', type: 'stacks-with' },
   { source: 'computer-use', target: 'omni-model', type: 'stacks-with' },
+  { source: 'vla', target: 'vlm', type: 'evolved-from' },
+  { source: 'vla', target: 'computer-use', type: 'stacks-with' },
+  { source: 'vla', target: 'omni-model', type: 'stacks-with' },
 
   // 评测安全
   { source: 'llm-judge', target: 'arena-eval', type: 'stacks-with' },
