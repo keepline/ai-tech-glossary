@@ -164,6 +164,18 @@ export const terms: Term[] = [
       '对数学、代码等可分解任务尤为关键，是提升推理可靠性的重要对齐手段。',
   },
 
+  {
+    id: 'sleep-framework',
+    en: 'Sleep Framework',
+    zh: '睡眠式持续学习',
+    category: '训练与对齐',
+    explanation:
+      'Google Research 提出的持续学习范式：在「清醒」阶段用短时记忆交互，在离线「睡眠」阶段做记忆巩固（向扩展的低秩 MoE 参数蒸馏）与「做梦」式自改进（随机专家合成数据 + RL 精炼），缓解灾难性遗忘并吸收新知识。',
+    whyItMatters:
+      '挑战「预训练后静态冻结」假设，把参数更新与上下文学习接到同一生命周期；2026-10-27 公开后迅速成为持续学习与长上下文参数化记忆的讨论焦点。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -363,6 +375,18 @@ export const terms: Term[] = [
     whyItMatters:
       '与 MCP 互补：MCP 侧重连工具与数据，A2A 侧重 Agent 彼此协作的标准化。',
     yearHint: '2025+',
+  },
+
+  {
+    id: 'agent-harness',
+    en: 'Agent Harness',
+    zh: 'Agent 运行时壳层',
+    category: 'Agent与工具',
+    explanation:
+      '围绕基础模型的执行脚手架：工具路由、状态/记忆、权限与安全哨兵、子 Agent 编排、校验与重试等运行时组件。模型负责推理，Harness 负责把推理落到可靠、可审计的多步执行。',
+    whyItMatters:
+      '2025–2026 业界共识「模型能力只是一半，另一半是 Harness」；Harness²、Work Agents 等近期工作把它推成独立技术层，与 MCP/A2A 共同构成 Agent 工程栈。',
+    yearHint: '2025–2026',
   },
 
   // ── 多模态 ────────────────────────────────────────────
@@ -579,6 +603,10 @@ export const edges: Edge[] = [
   { source: 'process-reward', target: 'rlhf', type: 'stacks-with' },
   { source: 'process-reward', target: 'grpo', type: 'stacks-with' },
   { source: 'grpo', target: 'cot', type: 'enables' },
+  { source: 'sleep-framework', target: 'moe', type: 'stacks-with' },
+  { source: 'sleep-framework', target: 'memory-agent', type: 'alternative-to' },
+  { source: 'sleep-framework', target: 'grpo', type: 'stacks-with' },
+  { source: 'sleep-framework', target: 'long-context', type: 'enables' },
 
   // 推理效率
   { source: 'paged-attention', target: 'kv-cache', type: 'enables' },
@@ -612,6 +640,11 @@ export const edges: Edge[] = [
   { source: 'a2a', target: 'multi-agent', type: 'enables' },
   { source: 'a2a', target: 'mcp', type: 'stacks-with' },
   { source: 'mcp', target: 'tool-calling', type: 'enables' },
+  { source: 'agent-harness', target: 'react-agent', type: 'stacks-with' },
+  { source: 'agent-harness', target: 'multi-agent', type: 'stacks-with' },
+  { source: 'agent-harness', target: 'tool-calling', type: 'part-of' },
+  { source: 'agent-harness', target: 'computer-use', type: 'stacks-with' },
+  { source: 'agent-harness', target: 'mcp', type: 'stacks-with' },
 
   // 多模态
   { source: 'vlm', target: 'transformer', type: 'stacks-with' },
