@@ -185,7 +185,18 @@ export const terms: Term[] = [
     explanation:
       '用小草稿模型快速提出候选 token 序列，再由大模型并行验证接受或拒绝，在保证输出分布不变的前提下加速自回归生成。',
     whyItMatters:
-      '是生产级 LLM 服务延迟优化的「免费午餐」之一，几乎不牺牲质量即可提升吞吐。',
+      '是生产级 LLM 服务延迟优化的「免费午餐」之一，几乎不牺牲质量即可提升吞吐；草稿侧已从自回归小模型扩展到并行/块草稿（EAGLE、扩散与 flow-map 等）。',
+  },
+  {
+    id: 'flashmap',
+    en: 'FlashMap',
+    zh: '流映射推测解码',
+    category: '推理与效率',
+    explanation:
+      'Flow Map Speculative Decoding：用连续流映射（flow map）草稿模型一次前向生成整块候选 token，再由目标大模型并行验证。相对自回归草稿更省算力，相对块扩散草稿（如 DFlash）能保留块内 token 依赖，减少「各位置独立预测」导致的联合不一致。',
+    whyItMatters:
+      '把流匹配思想接到无损推测解码；2026-10 开源权重与 vLLM/SGLang 插件后，成为并行草稿路线的新标杆之一，直接影响推理延迟与服务成本。',
+    yearHint: '2026',
   },
   {
     id: 'paged-attention',
@@ -621,6 +632,11 @@ export const edges: Edge[] = [
   { source: 'gguf', target: 'inference-engine', type: 'stacks-with' },
   { source: 'gptq-awq', target: 'inference-engine', type: 'stacks-with' },
   { source: 'speculative-decoding', target: 'inference-engine', type: 'part-of' },
+  { source: 'flashmap', target: 'speculative-decoding', type: 'evolved-from' },
+  { source: 'flashmap', target: 'flow-matching', type: 'stacks-with' },
+  { source: 'flashmap', target: 'diffusion-lm', type: 'alternative-to' },
+  { source: 'flashmap', target: 'vllm', type: 'stacks-with' },
+  { source: 'flashmap', target: 'inference-engine', type: 'part-of' },
 
   // RAG
   { source: 'rag', target: 'embedding', type: 'part-of' },
