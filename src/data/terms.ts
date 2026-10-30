@@ -272,6 +272,17 @@ export const terms: Term[] = [
       '企业落地 LLM 最常见的架构模式；决定了「模型知识」与「业务知识」如何协同。',
   },
   {
+    id: 'agentic-rag',
+    en: 'Agentic RAG',
+    zh: '智能体式检索增强',
+    category: 'RAG与记忆',
+    explanation:
+      '相对一次性「检索→拼接→生成」的静态 RAG，让模型在多步推理中自主决定何时检索、用何种检索信号（语义/关键词等）、以及上下文粒度（句子级证据 vs 扩段阅读），并可经 RL/过程监督优化检索动作本身（如 GRASP、RAG-Gym / Re²Search++ 等路线）。',
+    whyItMatters:
+      '2025–2026 信息检索 Agent 与 Deep Research 产品把检索从管道步骤升格为可学习策略；近期 Adobe GRASP（粒度感知检索策略）与 Nature 侧 RAG-Gym 过程监督等工作，强化了「监督检索过程而非只盯最终答案」的共识。',
+    yearHint: '2025–2026',
+  },
+  {
     id: 'graphrag',
     en: 'GraphRAG',
     zh: '图谱增强检索',
@@ -423,6 +434,17 @@ export const terms: Term[] = [
     yearHint: '2024–2026',
   },
   {
+    id: 'world-model',
+    en: 'World Model',
+    zh: '世界模型',
+    category: '多模态',
+    explanation:
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成（如 Hy-Nomas 等）与具身 VLA/机器人策略中重新成为核心组件，用于规划、反事实推理与数据扩充。',
+    whyItMatters:
+      '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；交互式视频世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
+    yearHint: '2024–2026',
+  },
+  {
     id: 'diffusion',
     en: 'Diffusion Model',
     zh: '扩散模型',
@@ -525,6 +547,17 @@ export const terms: Term[] = [
       '在模型前后增加分类器、规则引擎与策略层，做输入过滤、输出审核与工具权限控制，形成纵深防御。',
     whyItMatters:
       '把对齐从「只靠模型内化」扩展为可运维的系统工程。',
+  },
+  {
+    id: 'self-assessment',
+    en: 'Self-Assessment',
+    zh: '自我安全评估',
+    category: '评测与安全',
+    explanation:
+      'Anthropic 提出的滥用监测手法：模型在每次回复后，利用已在 KV Cache 中的对话，再生成极短的安全评估（是否有害、类别、人工复核优先级、是否已拒绝等）。作为离线宽覆盖监控层，与实时拦截护栏互补；相对另开完整策略提示的分类器，增量算力通常不到约 2%。',
+    whyItMatters:
+      '2026 年 Anthropic 在生产流量中规模化落地，强调「评估质量随模型能力一起涨」且极低成本；把「模型自监视」从研究设想变成可运维的纵深防御组件，与 Guardrails / Red Teaming 并列讨论。',
+    yearHint: '2026',
   },
 
   // ── 基础设施与部署 ────────────────────────────────────
@@ -646,6 +679,11 @@ export const edges: Edge[] = [
   { source: 'long-context', target: 'rope', type: 'stacks-with' },
   { source: 'memory-agent', target: 'rag', type: 'stacks-with' },
   { source: 'memory-agent', target: 'react-agent', type: 'stacks-with' },
+  { source: 'agentic-rag', target: 'rag', type: 'evolved-from' },
+  { source: 'agentic-rag', target: 'react-agent', type: 'stacks-with' },
+  { source: 'agentic-rag', target: 'graphrag', type: 'alternative-to' },
+  { source: 'agentic-rag', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'agentic-rag', target: 'process-reward', type: 'stacks-with' },
 
   // Agent
   { source: 'react-agent', target: 'tool-calling', type: 'part-of' },
@@ -671,6 +709,9 @@ export const edges: Edge[] = [
   { source: 'vla', target: 'vlm', type: 'evolved-from' },
   { source: 'vla', target: 'computer-use', type: 'stacks-with' },
   { source: 'vla', target: 'omni-model', type: 'stacks-with' },
+  { source: 'world-model', target: 'vla', type: 'enables' },
+  { source: 'world-model', target: 'vlm', type: 'stacks-with' },
+  { source: 'world-model', target: 'diffusion', type: 'stacks-with' },
 
   // 评测安全
   { source: 'llm-judge', target: 'arena-eval', type: 'stacks-with' },
@@ -680,6 +721,9 @@ export const edges: Edge[] = [
   { source: 'prompt-injection', target: 'tool-calling', type: 'stacks-with' },
   { source: 'guardrails', target: 'prompt-injection', type: 'enables' },
   { source: 'llm-judge', target: 'benchmarks', type: 'stacks-with' },
+  { source: 'self-assessment', target: 'guardrails', type: 'stacks-with' },
+  { source: 'self-assessment', target: 'red-teaming', type: 'stacks-with' },
+  { source: 'self-assessment', target: 'llm-judge', type: 'alternative-to' },
 
   // 基建
   { source: 'distributed-train', target: 'moe', type: 'enables' },
