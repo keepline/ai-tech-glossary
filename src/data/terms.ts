@@ -163,6 +163,28 @@ export const terms: Term[] = [
     whyItMatters:
       '对数学、代码等可分解任务尤为关键，是提升推理可靠性的重要对齐手段。',
   },
+  {
+    id: 'dtca',
+    en: 'DTCA',
+    zh: '去噪 Token 信用分配',
+    category: '训练与对齐',
+    explanation:
+      'Denoising Token Credit Assignment：面向扩散语言模型（DLM）强化学习的 token 级信用分配框架。在去噪过程中，用「提交某 token 后剩余掩码位预测置信度的提升」估计贡献，按词性聚合后筛选信息量大的去噪步，再结合策略更新引起的熵变化校准优势信号。',
+    whyItMatters:
+      '自回归 RL（如 GRPO）默认按序列位置分配信用，但 DLM 是并行解掩码，位置与时间步语义不同；2026-10 DTCA 等结果表明，为去噪动力学专门设计信用分配，是把 RL 推理增益迁到扩散语言模型上的关键缺口。',
+    yearHint: '2026',
+  },
+  {
+    id: 'mpo',
+    en: 'MPO',
+    zh: '多尺度策略优化',
+    category: '训练与对齐',
+    explanation:
+      'Multiscale Policy Optimization：面向长程 LLM Agent 的强化学习算法。观察到评论家（critic）价值主要在「助手回合」之间变化，因而先在回合尺度做广义优势估计，再在回合内做局部 token 校正，并用回合级重要性采样对齐策略更新，避免纯 token 级比率对长轨迹的额外惩罚。',
+    whyItMatters:
+      '搜索、工具调用与自动化等长程任务里，一次环境交互对应一整段助手输出；把信用锚定在回合再细化到 token，比直接套用 GRPO/PPO 的 token 级配方更贴合 Agent 轨迹结构，是 2026 长程 Agent 训练的代表性新算法之一。',
+    yearHint: '2026',
+  },
 
   {
     id: 'sleep-framework',
@@ -410,6 +432,18 @@ export const terms: Term[] = [
       '2025–2026 业界共识「模型能力只是一半，另一半是 Harness」；Harness²、Work Agents 等近期工作把它推成独立技术层，与 MCP/A2A 共同构成 Agent 工程栈。',
     yearHint: '2025–2026',
   },
+  {
+    id: 'agent-skills',
+    en: 'Agent Skills',
+    zh: 'Agent 技能包',
+    category: 'Agent与工具',
+    explanation:
+      '可被 Agent 运行时按需加载的能力模块：通常以含 SKILL.md（或等价清单）的目录形式打包提示词、脚本与资源，声明适用场景与操作步骤，使模型在特定任务上按约定流程行动，而无需改模型权重或重写整套 Harness。',
+    whyItMatters:
+      '把「领域能力」从一次性提示变成可版本化、可分发的插件单元；Anthropic 等开放 Skills 库与编辑器侧 Skills 插件后，Agent 工程从「只会调工具」走向「可组合的技能生态」，与 MCP/Harness 互补。',
+    yearHint: '2025–2026',
+  },
+
 
   // ── 多模态 ────────────────────────────────────────────
   {
@@ -651,6 +685,14 @@ export const edges: Edge[] = [
   { source: 'sleep-framework', target: 'memory-agent', type: 'alternative-to' },
   { source: 'sleep-framework', target: 'grpo', type: 'stacks-with' },
   { source: 'sleep-framework', target: 'long-context', type: 'enables' },
+  { source: 'dtca', target: 'diffusion-lm', type: 'stacks-with' },
+  { source: 'dtca', target: 'grpo', type: 'alternative-to' },
+  { source: 'dtca', target: 'process-reward', type: 'stacks-with' },
+  { source: 'dtca', target: 'rlhf', type: 'evolved-from' },
+  { source: 'mpo', target: 'grpo', type: 'evolved-from' },
+  { source: 'mpo', target: 'react-agent', type: 'enables' },
+  { source: 'mpo', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'mpo', target: 'tool-calling', type: 'stacks-with' },
 
   // 推理效率
   { source: 'paged-attention', target: 'kv-cache', type: 'enables' },
@@ -699,6 +741,9 @@ export const edges: Edge[] = [
   { source: 'agent-harness', target: 'tool-calling', type: 'part-of' },
   { source: 'agent-harness', target: 'computer-use', type: 'stacks-with' },
   { source: 'agent-harness', target: 'mcp', type: 'stacks-with' },
+  { source: 'agent-skills', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'agent-skills', target: 'mcp', type: 'stacks-with' },
+  { source: 'agent-skills', target: 'tool-calling', type: 'part-of' },
 
   // 多模态
   { source: 'vlm', target: 'transformer', type: 'stacks-with' },
