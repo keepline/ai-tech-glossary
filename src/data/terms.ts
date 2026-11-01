@@ -198,6 +198,17 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'mtp',
+    en: 'Multi-Token Prediction',
+    zh: '多词元预测',
+    category: '训练与对齐',
+    explanation:
+      'Multi-Token Prediction：预训练时并行预测多个未来 token（DeepSeek / Meta 等路线），提高样本效率，并天然支持自投机解码。Soft-MTP（2026）进一步从 MTP 交叉熵梯度中剥离噪声残差，仅保留指向 NTP 的 KL 自蒸馏——改动一行、无额外参数，使 MTP 更稳、更利于投机解码与零样本。',
+    whyItMatters:
+      'MTP 已成为常见预训练配方；Soft-MTP 让其在投机解码与零样本场景下更便宜、更稳，是训练侧接到推理加速的代表性接口。',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -280,6 +291,18 @@ export const terms: Term[] = [
       '不等整批请求一起结束，而是在 token 粒度动态插入/移除请求，最大化 GPU 利用率。',
     whyItMatters:
       '与 PagedAttention 一起构成现代 LLM 服务引擎的吞吐基石。',
+  },
+
+  {
+    id: 'lown',
+    en: 'LOWN (Look Only When Needed)',
+    zh: '按需视觉路由',
+    category: '推理与效率',
+    explanation:
+      'Look Only When Needed：面向扩散视觉语言模型（DVLM）的免训练解码策略。每步先不看图像做预测；仅当该预测与上一轮「带图像条件」的预测不一致时，才重新处理视觉 token（证书引导的按需视觉路由）。在 LLaDA-V 类 DVLM 上可保留约 99.6% 分数，同时把解码 FLOPs 压到约 35%。',
+    whyItMatters:
+      '扩散 VLM 每个去噪步都要重编海量视觉 token；自适应跳过是与视觉 token 剪枝正交的主效率杠杆，直接砍解码算力。',
+    yearHint: '2026',
   },
 
   // ── RAG与记忆 ─────────────────────────────────────────
@@ -444,6 +467,18 @@ export const terms: Term[] = [
     yearHint: '2025–2026',
   },
 
+
+  {
+    id: 'coral',
+    en: 'CORAL (Cognitive Resource Self-Allocation)',
+    zh: '认知资源自分配',
+    category: 'Agent与工具',
+    explanation:
+      'Cognitive Resource Self-Allocation：长程 Agent 主动调用 Memory Management（把已验证事实与进度写入检查点）与 Context Optimization（修剪无用上下文并保留检查点），再从干净状态恢复——让模型自行管理工作记忆（arXiv 2610.40350）。相对 ReAct，在 GAIA 上以远更少输入 token 取得增益。',
+    whyItMatters:
+      '长程 Agent 常因认知过载失败；让 Agent 自己分配记忆与上下文，是超越静态记忆库的实用模式。',
+    yearHint: '2026',
+  },
 
   // ── 多模态 ────────────────────────────────────────────
   {
@@ -693,6 +728,9 @@ export const edges: Edge[] = [
   { source: 'mpo', target: 'react-agent', type: 'enables' },
   { source: 'mpo', target: 'agent-harness', type: 'stacks-with' },
   { source: 'mpo', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'mtp', target: 'transformer', type: 'stacks-with' },
+  { source: 'mtp', target: 'speculative-decoding', type: 'enables' },
+  { source: 'mtp', target: 'sft', type: 'stacks-with' },
 
   // 推理效率
   { source: 'paged-attention', target: 'kv-cache', type: 'enables' },
@@ -712,6 +750,9 @@ export const edges: Edge[] = [
   { source: 'flashmap', target: 'diffusion-lm', type: 'alternative-to' },
   { source: 'flashmap', target: 'vllm', type: 'stacks-with' },
   { source: 'flashmap', target: 'inference-engine', type: 'part-of' },
+  { source: 'lown', target: 'vlm', type: 'stacks-with' },
+  { source: 'lown', target: 'diffusion-lm', type: 'stacks-with' },
+  { source: 'lown', target: 'speculative-decoding', type: 'alternative-to' },
 
   // RAG
   { source: 'rag', target: 'embedding', type: 'part-of' },
@@ -744,6 +785,10 @@ export const edges: Edge[] = [
   { source: 'agent-skills', target: 'agent-harness', type: 'stacks-with' },
   { source: 'agent-skills', target: 'mcp', type: 'stacks-with' },
   { source: 'agent-skills', target: 'tool-calling', type: 'part-of' },
+  { source: 'coral', target: 'memory-agent', type: 'evolved-from' },
+  { source: 'coral', target: 'react-agent', type: 'stacks-with' },
+  { source: 'coral', target: 'long-context', type: 'alternative-to' },
+  { source: 'coral', target: 'agentic-rag', type: 'stacks-with' },
 
   // 多模态
   { source: 'vlm', target: 'transformer', type: 'stacks-with' },
