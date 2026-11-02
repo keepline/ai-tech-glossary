@@ -209,6 +209,19 @@ export const terms: Term[] = [
       'MTP 已成为常见预训练配方；Soft-MTP 让其在投机解码与零样本场景下更便宜、更稳，是训练侧接到推理加速的代表性接口。',
   },
 
+
+  {
+    id: 'a-rsi',
+    en: 'A-RSI (Adaptive Task Refresh)',
+    zh: '自适应任务刷新自改进',
+    category: '训练与对齐',
+    explanation:
+      'Adaptive Task Refresh for zero-data multimodal recursive self-improvement：把「何时刷新经验」与「答案是什么」解耦——前者仅根据训练日志中的奖励波动/准确率下滑决定刷新时机（不偷看验证/测试集），后者用模型自写程序构成的静态题库做可独立核验的答案。全程无外部训练样例与人工标注；约 800 道新任务可将 11 项基准均值从 57.77 提到 61.05（arXiv 2610.38568）。',
+    whyItMatters:
+      '为零数据多模态递归自改进给出可落地的任务池刷新机制；与 Sleep 等持续学习框架互补，把「自造题 + 可核验奖励」接到 GRPO/过程奖励训练环。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -302,6 +315,19 @@ export const terms: Term[] = [
       'Look Only When Needed：面向扩散视觉语言模型（DVLM）的免训练解码策略。每步先不看图像做预测；仅当该预测与上一轮「带图像条件」的预测不一致时，才重新处理视觉 token（证书引导的按需视觉路由）。在 LLaDA-V 类 DVLM 上可保留约 99.6% 分数，同时把解码 FLOPs 压到约 35%。',
     whyItMatters:
       '扩散 VLM 每个去噪步都要重编海量视觉 token；自适应跳过是与视觉 token 剪枝正交的主效率杠杆，直接砍解码算力。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'rimuru',
+    en: 'Rimuru',
+    zh: '异构张量统一内存服务',
+    category: '推理与效率',
+    explanation:
+      '面向 LLM 服务的统一内存层：跨专家权重、KV/SSM/卷积状态等异构张量共享页池，配合内存视图、多级页分配器与页表感知的融合 MoE 内核（非连续专家无需拷贝）。负载感知的弹性专家卸载可在压力下重分配页；构建于 vLLM。相对基线最高约 19× 吞吐、TTFT 降低约 98%（arXiv 2610.40305）。',
+    whyItMatters:
+      '把分页注意力从 KV 推广到专家权重与多种状态张量，是 MoE 高并发服务里显存碎片与卸载拷贝的关键解法之一。',
     yearHint: '2026',
   },
 
@@ -508,9 +534,9 @@ export const terms: Term[] = [
     zh: '世界模型',
     category: '多模态',
     explanation:
-      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成（如 Hy-Nomas 等）与具身 VLA/机器人策略中重新成为核心组件，用于规划、反事实推理与数据扩充。',
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆路线进一步把实时、空间一致的交互世界仿真推到可用。',
     whyItMatters:
-      '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；交互式视频世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
+      '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；实时交互世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
     yearHint: '2024–2026',
   },
   {
@@ -554,6 +580,19 @@ export const terms: Term[] = [
     whyItMatters:
       '代表多模态从「外挂编码器」走向「原生统一」的产品与研究方向。',
     yearHint: '2024–2026',
+  },
+
+
+  {
+    id: 'l3g-world',
+    en: 'L3G-World / Latent 3D Gaussian Memory',
+    zh: '潜在三维高斯记忆世界模型',
+    category: '多模态',
+    explanation:
+      '用紧凑的 Latent 3D Gaussian Memory（L3G）配合交替的记忆更新器与视频 DiT，实时生成空间一致的可交互世界。记忆随场景范围而非视频流长度增长；每个高斯存 VAE 潜在，可直接渲染进 DiT 潜在空间（无需 RGB 再编码）。相对既有 3D 记忆基线，记忆渲染最高约快 359×，可达约 9 FPS 实时（arXiv 2610.40614）。',
+    whyItMatters:
+      '把世界模型从「短视频生成」推向「可交互、空间一致的实时仿真」；潜在高斯记忆避免 RGB 回编，是 2026 交互世界路线的代表性效率设计。',
+    yearHint: '2026',
   },
 
   // ── 评测与安全 ────────────────────────────────────────
@@ -732,6 +771,11 @@ export const edges: Edge[] = [
   { source: 'mtp', target: 'speculative-decoding', type: 'enables' },
   { source: 'mtp', target: 'sft', type: 'stacks-with' },
 
+  { source: 'a-rsi', target: 'sleep-framework', type: 'stacks-with' },
+  { source: 'a-rsi', target: 'grpo', type: 'stacks-with' },
+  { source: 'a-rsi', target: 'process-reward', type: 'stacks-with' },
+  { source: 'a-rsi', target: 'vlm', type: 'stacks-with' },
+
   // 推理效率
   { source: 'paged-attention', target: 'kv-cache', type: 'enables' },
   { source: 'speculative-decoding', target: 'kv-cache', type: 'stacks-with' },
@@ -753,6 +797,12 @@ export const edges: Edge[] = [
   { source: 'lown', target: 'vlm', type: 'stacks-with' },
   { source: 'lown', target: 'diffusion-lm', type: 'stacks-with' },
   { source: 'lown', target: 'speculative-decoding', type: 'alternative-to' },
+
+  { source: 'rimuru', target: 'vllm', type: 'stacks-with' },
+  { source: 'rimuru', target: 'paged-attention', type: 'evolved-from' },
+  { source: 'rimuru', target: 'moe', type: 'stacks-with' },
+  { source: 'rimuru', target: 'kv-cache', type: 'enables' },
+  { source: 'rimuru', target: 'inference-engine', type: 'part-of' },
 
   // RAG
   { source: 'rag', target: 'embedding', type: 'part-of' },
@@ -802,6 +852,11 @@ export const edges: Edge[] = [
   { source: 'world-model', target: 'vla', type: 'enables' },
   { source: 'world-model', target: 'vlm', type: 'stacks-with' },
   { source: 'world-model', target: 'diffusion', type: 'stacks-with' },
+
+  { source: 'l3g-world', target: 'world-model', type: 'evolved-from' },
+  { source: 'l3g-world', target: 'dit', type: 'stacks-with' },
+  { source: 'l3g-world', target: 'diffusion', type: 'stacks-with' },
+  { source: 'l3g-world', target: 'vla', type: 'enables' },
 
   // 评测安全
   { source: 'llm-judge', target: 'arena-eval', type: 'stacks-with' },
