@@ -78,6 +78,19 @@ export const terms: Term[] = [
     yearHint: '2024+',
   },
 
+
+  {
+    id: 'latent-sparse-attention',
+    en: 'Latent Sparse Attention',
+    zh: '潜在稀疏注意力',
+    category: '模型架构',
+    explanation:
+      'Latent Sparse Attention：在学习到的潜在空间对 key 做层次聚类，以亚二次复杂度支撑超长上下文（报道可达约 1000 万 token）。蒸馏变体在 Qwen/GLM 等上相对全注意力可带来大幅 prefill/decode 加速。有别于 MLA 的 KV 压缩与 GQA/MQA 的头共享，走的是潜在空间稀疏检索路径。',
+    whyItMatters:
+      '把「能塞进多长」与「算得起」拆开：在不退回稠密全注意力的前提下扩展上下文，是 2026 超长上下文架构的一条高信号路线，与 MLA、FlashAttention 互补而非简单替代。',
+    yearHint: '2026',
+  },
+
   {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
@@ -222,6 +235,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'weight-space-programming',
+    en: 'Weight-Space Programming',
+    zh: '权重空间编程',
+    category: '训练与对齐',
+    explanation:
+      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。',
+    whyItMatters:
+      '把「改模型」从训练循环挪到可解释的权重手术：相对 LoRA/SFT 的参数适配，提供可审计的局部编辑与可解释性接口，也给红队/自评估打开读权重诊断通道。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -328,6 +354,19 @@ export const terms: Term[] = [
       '面向 LLM 服务的统一内存层：跨专家权重、KV/SSM/卷积状态等异构张量共享页池，配合内存视图、多级页分配器与页表感知的融合 MoE 内核（非连续专家无需拷贝）。负载感知的弹性专家卸载可在压力下重分配页；构建于 vLLM。相对基线最高约 19× 吞吐、TTFT 降低约 98%（arXiv 2610.40305）。',
     whyItMatters:
       '把分页注意力从 KV 推广到专家权重与多种状态张量，是 MoE 高并发服务里显存碎片与卸载拷贝的关键解法之一。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'acct',
+    en: 'ACCT (Asymmetric Cross-LLM Context Transfer)',
+    zh: '非对称跨模型上下文迁移',
+    category: '推理与效率',
+    explanation:
+      'Asymmetric Cross-LLM Context Transfer：在同族不同规模模型之间迁移 KV Cache（token cartography、动态头分配与编译），让分层路由把长上下文交接出去而无需完整重 prefill。报道在约 19k token 交接上可大幅加速，并约减 75% KV 体积。',
+    whyItMatters:
+      '把「小模型接请求、大模型接手长上下文」做成可工程化的缓存交接，而不是每次冷启动；是推测解码与网关路由之外，直接砍 TTFT/算力的关键拼图。',
     yearHint: '2026',
   },
 
@@ -745,6 +784,11 @@ export const edges: Edge[] = [
   { source: 'diffusion-lm', target: 'transformer', type: 'alternative-to' },
   { source: 'diffusion-lm', target: 'speculative-decoding', type: 'stacks-with' },
 
+  { source: 'latent-sparse-attention', target: 'mla', type: 'evolved-from' },
+  { source: 'latent-sparse-attention', target: 'long-context', type: 'stacks-with' },
+  { source: 'latent-sparse-attention', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'latent-sparse-attention', target: 'gqa-mqa', type: 'alternative-to' },
+
   // 训练链路
   { source: 'sft', target: 'transformer', type: 'stacks-with' },
   { source: 'rlhf', target: 'sft', type: 'evolved-from' },
@@ -776,6 +820,11 @@ export const edges: Edge[] = [
   { source: 'a-rsi', target: 'process-reward', type: 'stacks-with' },
   { source: 'a-rsi', target: 'vlm', type: 'stacks-with' },
 
+  { source: 'weight-space-programming', target: 'lora', type: 'alternative-to' },
+  { source: 'weight-space-programming', target: 'sft', type: 'alternative-to' },
+  { source: 'weight-space-programming', target: 'process-reward', type: 'stacks-with' },
+  { source: 'weight-space-programming', target: 'self-assessment', type: 'enables' },
+
   // 推理效率
   { source: 'paged-attention', target: 'kv-cache', type: 'enables' },
   { source: 'speculative-decoding', target: 'kv-cache', type: 'stacks-with' },
@@ -803,6 +852,11 @@ export const edges: Edge[] = [
   { source: 'rimuru', target: 'moe', type: 'stacks-with' },
   { source: 'rimuru', target: 'kv-cache', type: 'enables' },
   { source: 'rimuru', target: 'inference-engine', type: 'part-of' },
+
+  { source: 'acct', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'acct', target: 'speculative-decoding', type: 'stacks-with' },
+  { source: 'acct', target: 'serving-gateway', type: 'stacks-with' },
+  { source: 'acct', target: 'inference-engine', type: 'enables' },
 
   // RAG
   { source: 'rag', target: 'embedding', type: 'part-of' },
