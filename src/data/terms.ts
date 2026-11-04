@@ -92,6 +92,18 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'depthgraft',
+    en: 'DepthGraft',
+    zh: '层次化跨层 KV 嫁接',
+    category: '模型架构',
+    explanation:
+      'DepthGraft：把 Transformer 按浅/中/深三段划分，浅层与中层正常算并缓存 KV，深层则用可学习通道系数、从步幅对齐的浅–中源对重构 KV。既把 KV 缓存大约压掉约三分之一并保留 prefill 早完成，又把跨层梯度做成对 KV 几何的结构性正则（arXiv 2611.03142）。在 GQA 与 MLA 上均可叠加。',
+    whyItMatters:
+      '跨层 KV 共享不只是「省显存」：合适的拓扑能 sharpen 检索方向并丰富 value 子空间。DepthGraft 相对相邻共享或全局锚点设计，是 2026 深度缩放与长上下文效率的一条可预训练级路线。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
     zh: '扩散语言模型',
@@ -545,6 +557,18 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'strategist',
+    en: 'Strategist / Strategy Blueprint',
+    zh: '推理策略蓝图演化',
+    category: 'Agent与工具',
+    explanation:
+      'Strategist（Princeton/Meta）：把「推理策略」写成可执行的 Strategy Blueprint（统一 execute 接口的代码），由元 Agent 在共享蓝图库上检索、提案、实测、回写——模型权重冻结，只演化如何调模型。30 项基准上相对最强基线平均准确率持平而加权推理成本约降 39%，策略可跨任务检索与跨模型迁移（arXiv 2611.03618）。',
+    whyItMatters:
+      '「模型只是一半，另一半是推理策略」；把策略从手写提示/固定工作流变成可积累的可执行库，与 Agent Harness / Skills 互补——Harness 管运行时壳，Strategist 管壳内怎么推理。',
+    yearHint: '2026',
+  },
+
   // ── 多模态 ────────────────────────────────────────────
   {
     id: 'vlm',
@@ -631,6 +655,18 @@ export const terms: Term[] = [
       '用紧凑的 Latent 3D Gaussian Memory（L3G）配合交替的记忆更新器与视频 DiT，实时生成空间一致的可交互世界。记忆随场景范围而非视频流长度增长；每个高斯存 VAE 潜在，可直接渲染进 DiT 潜在空间（无需 RGB 再编码）。相对既有 3D 记忆基线，记忆渲染最高约快 359×，可达约 9 FPS 实时（arXiv 2610.40614）。',
     whyItMatters:
       '把世界模型从「短视频生成」推向「可交互、空间一致的实时仿真」；潜在高斯记忆避免 RGB 回编，是 2026 交互世界路线的代表性效率设计。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'wave-forcing',
+    en: 'Wave Forcing',
+    zh: '波前强制流式视频生成',
+    category: '多模态',
+    explanation:
+      'Wave Forcing（WF，SJTU DENG Lab）：面向实时长视频的块因果流式扩散。用 chunk-wise causal attention 让较新、更噪的块在去噪未完成前读取更早、更干净的块；再配合 Wave Parallelism / WaveRT，把错位去噪与历史缓存刷新分布到全模型副本上，实现流水填满后「每轮前向吐一块」（1F1C）。在 Wan2.1-T2V-1.3B 上 4-step 报道约 134.8 E2E FPS（8×H200）。',
+    whyItMatters:
+      '把「多步去噪质量」与「真·流式吞吐」一起做系统级共设计；相对 Rolling Forcing 等序列化路线，是 2026 实时视频生成与交互世界管线的高信号系统方案。',
     yearHint: '2026',
   },
 
@@ -789,6 +825,12 @@ export const edges: Edge[] = [
   { source: 'latent-sparse-attention', target: 'kv-cache', type: 'stacks-with' },
   { source: 'latent-sparse-attention', target: 'gqa-mqa', type: 'alternative-to' },
 
+  { source: 'depthgraft', target: 'kv-cache', type: 'enables' },
+  { source: 'depthgraft', target: 'mla', type: 'stacks-with' },
+  { source: 'depthgraft', target: 'gqa-mqa', type: 'stacks-with' },
+  { source: 'depthgraft', target: 'transformer', type: 'part-of' },
+  { source: 'depthgraft', target: 'long-context', type: 'stacks-with' },
+
   // 训练链路
   { source: 'sft', target: 'transformer', type: 'stacks-with' },
   { source: 'rlhf', target: 'sft', type: 'evolved-from' },
@@ -893,6 +935,11 @@ export const edges: Edge[] = [
   { source: 'coral', target: 'react-agent', type: 'stacks-with' },
   { source: 'coral', target: 'long-context', type: 'alternative-to' },
   { source: 'coral', target: 'agentic-rag', type: 'stacks-with' },
+  { source: 'strategist', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'strategist', target: 'react-agent', type: 'evolved-from' },
+  { source: 'strategist', target: 'multi-agent', type: 'stacks-with' },
+  { source: 'strategist', target: 'cot', type: 'enables' },
+  { source: 'strategist', target: 'agent-skills', type: 'stacks-with' },
 
   // 多模态
   { source: 'vlm', target: 'transformer', type: 'stacks-with' },
@@ -911,6 +958,10 @@ export const edges: Edge[] = [
   { source: 'l3g-world', target: 'dit', type: 'stacks-with' },
   { source: 'l3g-world', target: 'diffusion', type: 'stacks-with' },
   { source: 'l3g-world', target: 'vla', type: 'enables' },
+  { source: 'wave-forcing', target: 'diffusion', type: 'evolved-from' },
+  { source: 'wave-forcing', target: 'dit', type: 'stacks-with' },
+  { source: 'wave-forcing', target: 'world-model', type: 'stacks-with' },
+  { source: 'wave-forcing', target: 'l3g-world', type: 'stacks-with' },
 
   // 评测安全
   { source: 'llm-judge', target: 'arena-eval', type: 'stacks-with' },
