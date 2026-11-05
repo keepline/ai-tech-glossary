@@ -260,6 +260,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'loco',
+    en: 'LoCo (Local Preference Learning)',
+    zh: '局部偏好学习推理压缩',
+    category: '训练与对齐',
+    explanation:
+      'LoCo（Think Less, Locally）：面向推理模型过长思维链的局部偏好学习。从模型自生成轨迹中检测「过度思考」状态，冻结该前缀、再从同一状态再生更短且可核验的续写，构造状态条件偏好对并用 DPO 训练——教模型何时继续推理、何时收束，而非笼统鼓励更短轨迹。数学完成长度可压约 41.7%–45.4%，代码约 23.4%–36.3%，准确率持平或提升（arXiv 2611.04814）。',
+    whyItMatters:
+      '推理模型的成本很大一部分来自「想够了还在想」；相对整条轨迹长度惩罚，状态局部的继续/收束偏好更贴合 CoT 决策点，是 2026 推理压缩与 DPO/过程奖励训练环的高信号新接口。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -743,6 +756,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'flashprove',
+    en: 'FlashProve / Provable Inference',
+    zh: '可证明推理（FlashProve）',
+    category: '评测与安全',
+    explanation:
+      'FlashProve（Anthropic，2026-11）：面向大模型服务的 zkSNARK 可证明推理原型。提供商先对权重做承诺，再为每次（或批后）推理生成短证明，使用户/审计方在不知权重的前提下验证「输出确由所承诺模型产生」。在 Llama 4 Maverick（约 400B MoE、4-bit）上单卡 H100 约 110 tok/s 出证、约 19 MB/1k-token 请求；证明本身隐藏权重，架构不隐藏。附 Lean 形式化顶层安全陈述与可执行验证器。',
+    whyItMatters:
+      '解决「你怎么知道对面真是你付费的那个模型」：路由偷换、攻击篡改 token、监管核验算力是否真在跑批准模型等场景需要密码学级归因。把 zkML 从研究数量级推到可开源复现的生产讨论门槛，与 Guardrails / Self-Assessment 互补。',
+    yearHint: '2026',
+  },
+
   // ── 基础设施与部署 ────────────────────────────────────
   {
     id: 'vllm',
@@ -804,6 +830,19 @@ export const terms: Term[] = [
     whyItMatters:
       '模型能力只是起点；持续交付与质量运营决定产品能否长期可用。',
   },
+
+  {
+    id: 'route-anything',
+    en: 'Route Anything / Model-Policy Routing',
+    zh: '全能模型与策略路由',
+    category: '基础设施与部署',
+    explanation:
+      'Route Anything：在质量–成本权衡下，为每个输入从异构候选池（语言模型、图像/视频/语音生成器、编码与职场 Agent、机器人策略等）动态选出期望价值减定价成本最高的路由。构建跨 25 基准、约 37 万次评分的全模态轨迹矩阵，并给出参考策略与质量容差下的定价与认证测试（arXiv 2611.05275）。相对最优固定候选，按输入 oracle 可高约 5.4 分；学习路由器在近零质量损失下平均效率约 8.82×。',
+    whyItMatters:
+      '「一个模型通吃」让位于「多候选编排」：路由成为通用 AI 系统的一等公民。与 Serving Gateway 的多模型灰度、ACCT 的跨模型上下文交接互补，是 2026 降本与能力编排的理论与实验标尺。',
+    yearHint: '2026',
+  },
+
 ]
 
 export const edges: Edge[] = [
@@ -983,6 +1022,23 @@ export const edges: Edge[] = [
   { source: 'mlops-llmops', target: 'serving-gateway', type: 'stacks-with' },
   { source: 'mlops-llmops', target: 'llm-judge', type: 'stacks-with' },
   { source: 'vllm', target: 'inference-engine', type: 'part-of' },
+
+  { source: 'loco', target: 'dpo', type: 'stacks-with' },
+  { source: 'loco', target: 'cot', type: 'enables' },
+  { source: 'loco', target: 'grpo', type: 'stacks-with' },
+  { source: 'loco', target: 'process-reward', type: 'alternative-to' },
+
+  { source: 'flashprove', target: 'guardrails', type: 'stacks-with' },
+  { source: 'flashprove', target: 'self-assessment', type: 'stacks-with' },
+  { source: 'flashprove', target: 'moe', type: 'stacks-with' },
+  { source: 'flashprove', target: 'inference-engine', type: 'stacks-with' },
+
+  { source: 'route-anything', target: 'serving-gateway', type: 'evolved-from' },
+  { source: 'route-anything', target: 'acct', type: 'stacks-with' },
+  { source: 'route-anything', target: 'multi-agent', type: 'stacks-with' },
+  { source: 'route-anything', target: 'vla', type: 'stacks-with' },
+  { source: 'route-anything', target: 'omni-model', type: 'stacks-with' },
+
 ]
 
 export function getTermById(id: string): Term | undefined {
