@@ -103,6 +103,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'looped-transformer',
+    en: 'Looped Transformer / ARLoop',
+    zh: '循环深度 Transformer',
+    category: '模型架构',
+    explanation:
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。同期还有 Dory、Best-of-Depth、Ouro 等循环深度变体。',
+    whyItMatters:
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。2026 开源循环 LLM 与残差设计密集出现，是参数高效预训练与推理深度缩放的关键架构叙事。',
+    yearHint: '2025–2026',
+  },
+
   {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
@@ -295,6 +308,19 @@ export const terms: Term[] = [
       '把流匹配思想接到无损推测解码；2026-10 开源权重与 vLLM/SGLang 插件后，成为并行草稿路线的新标杆之一，直接影响推理延迟与服务成本。',
     yearHint: '2026',
   },
+
+  {
+    id: 'loopvq',
+    en: 'LoopVQ',
+    zh: '循环 Transformer 亚比特 KV 量化',
+    category: '推理与效率',
+    explanation:
+      'LoopVQ：面向 looped Transformer 的 KV Cache 向量量化。循环模型每一步仍要存各自 KV，缓存随循环次数线性涨；LoopVQ 观察到循环轴冗余与各步对量化敏感度差异，把多步通道联合编码，并微调码本以贴合全精度输出。可到约 0.5 bit/元素（配合 TaSQ 甚至约 0.25），在 Ouro/Huginn 上接近 BF16，SGLang 实现上 32K 上下文解码延迟近乎减半、峰值吞吐最高约 4–6×（arXiv 2611.05304）。',
+    whyItMatters:
+      '循环深度省的是参数内存，KV 仍是服务瓶颈；LoopVQ 把「循环架构」与「亚比特 KV」接到同一条线上，是 2026 循环 LLM 真正可服务的关键拼图。',
+    yearHint: '2026',
+  },
+
   {
     id: 'paged-attention',
     en: 'PagedAttention',
@@ -610,7 +636,7 @@ export const terms: Term[] = [
     zh: '世界模型',
     category: '多模态',
     explanation:
-      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆路线进一步把实时、空间一致的交互世界仿真推到可用。',
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano 等开源交互仿真检查点（动作/空间控制→多视角与 LiDAR 观测），进一步把闭环、可流式的交互世界仿真推到可用。',
     whyItMatters:
       '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；实时交互世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
     yearHint: '2024–2026',
@@ -658,6 +684,19 @@ export const terms: Term[] = [
     yearHint: '2024–2026',
   },
 
+
+
+  {
+    id: 'flowshift',
+    en: 'FlowShift',
+    zh: '离散全能模型的连续流适配',
+    category: '多模态',
+    explanation:
+      'FlowShift：参数高效后训练框架，把已预训练的离散 Unified Multimodal Model（UMM）改造成连续 rectified-flow 生成器——用连续潜在投影替换离散视觉接口，对注意力层施 LoRA，并以 Dual-Objective Velocity Vector Distillation（DOVD）同时对齐高保真连续教师与真实连续轨迹。报告称 COCO-30K FID 与美学分显著提升，同时保留逾 99.5% 多模态理解能力（arXiv 2611.05451）。',
+    whyItMatters:
+      '离散 token 带来语义推理却卡视觉细节；FlowShift 不重训骨干就能「离散理解 → 连续生成」，是 2026 统一多模态从量化瓶颈走向高保真生成的代表性后训练接口。',
+    yearHint: '2026',
+  },
 
   {
     id: 'l3g-world',
@@ -1038,6 +1077,22 @@ export const edges: Edge[] = [
   { source: 'route-anything', target: 'multi-agent', type: 'stacks-with' },
   { source: 'route-anything', target: 'vla', type: 'stacks-with' },
   { source: 'route-anything', target: 'omni-model', type: 'stacks-with' },
+
+  { source: 'looped-transformer', target: 'transformer', type: 'evolved-from' },
+  { source: 'looped-transformer', target: 'moe', type: 'alternative-to' },
+  { source: 'looped-transformer', target: 'mamba', type: 'stacks-with' },
+  { source: 'looped-transformer', target: 'cot', type: 'enables' },
+
+  { source: 'loopvq', target: 'looped-transformer', type: 'stacks-with' },
+  { source: 'loopvq', target: 'kv-cache', type: 'enables' },
+  { source: 'loopvq', target: 'gptq-awq', type: 'stacks-with' },
+  { source: 'loopvq', target: 'inference-engine', type: 'part-of' },
+
+  { source: 'flowshift', target: 'omni-model', type: 'evolved-from' },
+  { source: 'flowshift', target: 'flow-matching', type: 'stacks-with' },
+  { source: 'flowshift', target: 'lora', type: 'stacks-with' },
+  { source: 'flowshift', target: 'diffusion', type: 'alternative-to' },
+
 
 ]
 
