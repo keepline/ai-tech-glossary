@@ -92,6 +92,18 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'zha',
+    en: 'ZHA (Zyphra Hierarchical Attention)',
+    zh: 'Zyphra 层次注意力',
+    category: '模型架构',
+    explanation:
+      'Zyphra Hierarchical Attention：用层次树索引稀疏检索 KV。底层保留原始 key，上层是学得的参考查询压缩摘要；查询自顶向下 top-p 路由，只展开相关分支后再做稠密注意力。索引本身可亚二次扩展，不同于仍要扫遍全上下文的扁平稀疏索引器。预训练 Transformer 可经短 KL 蒸馏接入（约数十亿 token、极少量新增参数），在长上下文推理、Agent 编程与检索基准上接近稠密注意力。',
+    whyItMatters:
+      '把「查询依赖检索」与「亚二次找 token」合在一条路上，是相对 MLA/潜在稀疏注意力另一条超长上下文架构；性能模型称千万级上下文相对稠密与 MSA 有数量级加速空间。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'depthgraft',
     en: 'DepthGraft',
     zh: '层次化跨层 KV 嫁接',
@@ -171,6 +183,19 @@ export const terms: Term[] = [
       '是「推理模型 / o1 风格」训练浪潮中的代表性算法变体，连接了可验证奖励与长链推理。',
     yearHint: '2024–2025',
   },
+
+  {
+    id: 'turnwise',
+    en: 'TurnWise',
+    zh: '回合级流式视频强化学习',
+    category: '训练与对齐',
+    explanation:
+      'TurnWise：面向流式视频理解的回合级 GRPO。助手在每帧决策点选择「回复」或「继续观察」；用静音补全前缀打分，把整条轨迹回报拆成各回合的剩余回报优势，再配合 turn-mean 损失聚合，让长短回复与等待动作等权。无需额外 critic 或额外 rollout。在 Qwen2.5/3-VL 上提升流式基准，并把重复回复率压约 61.5%（arXiv 2611.06728）。',
+    whyItMatters:
+      '轨迹级优势会奖励成功后的赘述、惩罚失败后的有用跟进；回合级信用把「何时说、何时等」当成一等学习单位，是 2026 流式多模态 Agent 对齐的高信号 GRPO 变体。',
+    yearHint: '2026',
+  },
+
   {
     id: 'lora',
     en: 'LoRA / QLoRA',
@@ -306,6 +331,18 @@ export const terms: Term[] = [
       'Flow Map Speculative Decoding：用连续流映射（flow map）草稿模型一次前向生成整块候选 token，再由目标大模型并行验证。相对自回归草稿更省算力，相对块扩散草稿（如 DFlash）能保留块内 token 依赖，减少「各位置独立预测」导致的联合不一致。',
     whyItMatters:
       '把流匹配思想接到无损推测解码；2026-10 开源权重与 vLLM/SGLang 插件后，成为并行草稿路线的新标杆之一，直接影响推理延迟与服务成本。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'vflash',
+    en: 'VFlash / Flash Primitive Decoding',
+    zh: '视觉原语闪速解码',
+    category: '推理与效率',
+    explanation:
+      'VFlash（NVIDIA）：面向物理 AI 的通用解码框架。用工具调用声明框/轨迹等视觉原语的类型与长度，轻量扩散草稿器在冻结 VLM 上下文上一次前向并行生成整段几何，再经目标 VLM 写入上下文供动作头使用；文本仍走可验证推测解码。相对自回归坐标 token，3D 轨迹误差可降约 28%–61%，单次生成约快 25×，下游世界动作模型成功率约 70.2% vs 基线 62.6%（arXiv 2611.08449）。',
+    whyItMatters:
+      '具身与驾驶的「视觉规划」瓶颈在坐标自回归；把原语边界对齐的并行草稿接到 VLM，是推测解码在物理 AI 上的系统级落地，直接影响机器人/自动驾驶的规划延迟与控制质量。',
     yearHint: '2026',
   },
 
@@ -1092,6 +1129,23 @@ export const edges: Edge[] = [
   { source: 'flowshift', target: 'flow-matching', type: 'stacks-with' },
   { source: 'flowshift', target: 'lora', type: 'stacks-with' },
   { source: 'flowshift', target: 'diffusion', type: 'alternative-to' },
+
+  { source: 'zha', target: 'transformer', type: 'evolved-from' },
+  { source: 'zha', target: 'latent-sparse-attention', type: 'alternative-to' },
+  { source: 'zha', target: 'long-context', type: 'stacks-with' },
+  { source: 'zha', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'zha', target: 'mamba', type: 'alternative-to' },
+
+  { source: 'turnwise', target: 'grpo', type: 'evolved-from' },
+  { source: 'turnwise', target: 'vlm', type: 'stacks-with' },
+  { source: 'turnwise', target: 'process-reward', type: 'stacks-with' },
+  { source: 'turnwise', target: 'rlhf', type: 'stacks-with' },
+
+  { source: 'vflash', target: 'speculative-decoding', type: 'evolved-from' },
+  { source: 'vflash', target: 'flashmap', type: 'stacks-with' },
+  { source: 'vflash', target: 'vlm', type: 'stacks-with' },
+  { source: 'vflash', target: 'vla', type: 'enables' },
+  { source: 'vflash', target: 'world-model', type: 'stacks-with' },
 
 
 ]
