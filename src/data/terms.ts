@@ -129,6 +129,18 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'muir',
+    en: 'Muir',
+    zh: '敏感度分配门控线性注意力',
+    category: '模型架构',
+    explanation:
+      'Muir：面向门控 delta-rule 线性注意力的架构。分析表明状态更新对写入远比对擦除敏感，因而把衰减/擦除/写入/输出门融合成按敏感度分配秩的低秩投影，并用匹配滤波读出门（静态通道轮廓 + 动态每 token 调制）重权状态行，再把省下的参数加宽 FFN。另设计边界枢轴分块并行更新，以在大 chunk 下稳定训练。166M–1.34B 相对 GDN-2 困惑度约降 1.8%–2.0%、相对 Transformer 约 2.5%–3.6%；1.34B 可从 4K 训练长度外推到约 1000 万 token 流且无困惑度漂移，静态读出下 passkey 检索至 1M token 接近满分（arXiv 2611.08376）。',
+    whyItMatters:
+      '把「擦除门不该与写入门同秩」和「慢衰减行会主导无权重读出」写成可落地的门控与读出设计；相对 Mamba / GDN-2，是 2026 线性注意力在超长上下文召回与宽矩阵单元训练上的一条高信号演进。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
     zh: '扩散语言模型',
@@ -308,6 +320,18 @@ export const terms: Term[] = [
       'LoCo（Think Less, Locally）：面向推理模型过长思维链的局部偏好学习。从模型自生成轨迹中检测「过度思考」状态，冻结该前缀、再从同一状态再生更短且可核验的续写，构造状态条件偏好对并用 DPO 训练——教模型何时继续推理、何时收束，而非笼统鼓励更短轨迹。数学完成长度可压约 41.7%–45.4%，代码约 23.4%–36.3%，准确率持平或提升（arXiv 2611.04814）。',
     whyItMatters:
       '推理模型的成本很大一部分来自「想够了还在想」；相对整条轨迹长度惩罚，状态局部的继续/收束偏好更贴合 CoT 决策点，是 2026 推理压缩与 DPO/过程奖励训练环的高信号新接口。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'harness-s',
+    en: 'Harness-S',
+    zh: '兄弟壳层救援训练',
+    category: '训练与对齐',
+    explanation:
+      'Harness-S：同一基座 Harness 演化出的变体具有局部性、互补性与非平稳性——各自修补不同失败，效用随策略学习而变。不是去找「万能壳」，而是沿不同修复方向演化专用兄弟 Harness，组成训练期固定的 Sibling Harness Pool；仅当基座壳上所有初次尝试都失败时，才用自适应路由（Harness Behavior Profiles + 多 LLM 投票）选出 Top-k 辅助壳，让同一策略在其上生成新轨迹并替换失败组做强化学习，把壳层诱发的能力迁回在原 Harness 下仍有效的单一策略。在 AppWorld、SWE-Gym 与 DBBench 上，回到原壳后显著优于只训练策略的基线（arXiv 2611.04277）。',
+    whyItMatters:
+      '「模型能力只是一半，另一半是 Harness」之后，下一步是用互补壳层当训练期老师、部署仍走原壳；相对只改策略或只换更强 Harness，是 2026 Agent 强化学习里把壳层差异蒸馏进策略本身的高信号配方。',
     yearHint: '2026',
   },
 
@@ -667,6 +691,19 @@ export const terms: Term[] = [
       '具身智能从「会看会说」走向「会做」的主流范式；OpenVLA / π0 等开源线与大量 2025–2026 论文把它推到工业与学术前线。',
     yearHint: '2024–2026',
   },
+
+  {
+    id: 'sla',
+    en: 'SLA (Spatial-Language-Action)',
+    zh: '空间-语言-动作模型',
+    category: '多模态',
+    explanation:
+      'SLA：在预训练 VLA 策略（文中以 π0.5 / pi05 初始化）上做持续预训练与后训练，把中间视觉嵌入与冻结的 3D 感知模型对齐，使空间理解成为可迁移的基础能力。用特征依赖门控从多层视觉嵌入自适应聚合空间监督；教师侧可利用部分可用的深度与相机标定；概率状态 dropout 促使模型依赖视觉线索、减少对演示轨迹过拟合。辅助模块仅用于训练，推理架构与原 VLA 权重可直接复用（arXiv 2611.08373）。',
+    whyItMatters:
+      '主流 VLA 的视觉表征多继承自 2D 视觉-语言预训练，空间监督常拖到任务适配才补；SLA 把隐式空间对齐做到持续预训练阶段且不改推理栈，是 2026 具身基础模型相对纯 VLA 的一条高信号空间路线。',
+    yearHint: '2026',
+  },
+
   {
     id: 'world-model',
     en: 'World Model',
@@ -1147,8 +1184,23 @@ export const edges: Edge[] = [
   { source: 'vflash', target: 'vla', type: 'enables' },
   { source: 'vflash', target: 'world-model', type: 'stacks-with' },
 
+  { source: 'muir', target: 'mamba', type: 'evolved-from' },
+  { source: 'muir', target: 'transformer', type: 'alternative-to' },
+  { source: 'muir', target: 'long-context', type: 'stacks-with' },
+  { source: 'muir', target: 'kv-cache', type: 'alternative-to' },
+
+  { source: 'sla', target: 'vla', type: 'evolved-from' },
+  { source: 'sla', target: 'vlm', type: 'stacks-with' },
+  { source: 'sla', target: 'world-model', type: 'stacks-with' },
+  { source: 'sla', target: 'vflash', type: 'stacks-with' },
+
+  { source: 'harness-s', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'harness-s', target: 'grpo', type: 'stacks-with' },
+  { source: 'harness-s', target: 'react-agent', type: 'enables' },
+  { source: 'harness-s', target: 'tool-calling', type: 'stacks-with' },
 
 ]
+
 
 export function getTermById(id: string): Term | undefined {
   return terms.find((t) => t.id === id)
