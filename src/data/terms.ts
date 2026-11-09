@@ -141,6 +141,18 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'recsa',
+    en: 'RecSA (Recursive Sparse Attention)',
+    zh: '递归稀疏注意力',
+    category: '模型架构',
+    explanation:
+      'RecSA：在每层每 KV 头上对 KV Cache 建树——每 16 个连续条目汇总为父节点（共享层内池化器生成 key，value 取均值），自顶向下每层最多选 k 个候选，选择与读取均为 O(log L)；未选中候选的摘要与最终精确 token 共享一次 softmax。RoPE 位置取该层候选列表内的索引，使任意长度下相对距离都不超出训练所见范围。以 Qwen3-4B 初始化、仅在原 32K 长度上训 0.62B token，RULER 从 131K 到 2M 全面领先，1M 上 60.5 vs 最佳基线 Dense+DCA 的 40.0；524K 单卡 H200 上 prefill/decode 约 3.2×/3.8×（arXiv 2611.07232）。',
+    whyItMatters:
+      '相对仍要扫遍全上下文的扁平稀疏索引，以及 ZHA 的学得层次路由，RecSA 把「层次选择 + 候选内相对 RoPE」写成可从短训长推的配方；是 2026 百万 token 上下文在小模型与对数代价上的高信号路线。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
     zh: '扩散语言模型',
@@ -346,6 +358,19 @@ export const terms: Term[] = [
     whyItMatters:
       '是生产级 LLM 服务延迟优化的「免费午餐」之一，几乎不牺牲质量即可提升吞吐；草稿侧已从自回归小模型扩展到并行/块草稿（EAGLE、扩散与 flow-map 等）。',
   },
+
+  {
+    id: 'speculative-listening',
+    en: 'Speculative Listening',
+    zh: '推测式收听',
+    category: '推理与效率',
+    explanation:
+      'Speculative Listening：面向块交错全双工语音语言模型的无训练、无损解码。利用等待下一音频块到来的空闲算力，先按「静音块」草稿输出，并另开一条次优首 token 分支；草稿放入跨块假设池，真实音频到达后再验证。论文称约 95.3% 的块不改变输出、改变时约 88% 从首 token 起变。TickTock-Bench 上报 speak 块约 2.6–2.8×、工具调用块最高约 23.4×，响应起始解码延迟降约 73% 至 74–241 ms（arXiv 2611.06982）。',
+    whyItMatters:
+      '把推测解码从「输出侧草稿」搬到「输入到达前的时间缝」；是全双工语音助手把回合间隙压进人类约 200 ms 对话节拍的关键拼图，与标准 Speculative Decoding / FlashMap 互补。',
+    yearHint: '2026',
+  },
+
   {
     id: 'flashmap',
     en: 'FlashMap',
@@ -577,6 +602,19 @@ export const terms: Term[] = [
     whyItMatters:
       '把 LLM 从「只会聊天」变成「能办事」的关键能力，是 Agent 产品化的前提。',
   },
+
+  {
+    id: 'coca-cola',
+    en: 'Coca-Cola (Latent Context Compression)',
+    zh: '连续潜在上下文压缩',
+    category: 'Agent与工具',
+    explanation:
+      'Coca-Cola（Context Compression via Continuous Latent Tokens）：挑战「工具观察必须以明文 token 回注上下文」的默认假设。在任务指令与当前步推理轨迹条件下，用轻量编码器把冗长嘈杂的工具输出压成少量潜在 token，经潜在适配器映射进目标 Agent 的输入嵌入空间；Action-Preserving Training 对齐压缩前后 Agent 的下一步动作分布，使潜在表示保留决策充分信息而非重建原文。网页搜索 Agent 在四套 QA 与两族模型上，总 token 消耗降约 70%–89%、端到端耗时降约 24%–56%，且答案质量不降反升（arXiv 2611.06500）。',
+    whyItMatters:
+      'Agent 多步工具环的瓶颈常是观察噪声与上下文膨胀；把工具结果改成「动作充分」的连续潜在表示，是相对文本摘要/剪枝的压缩上限突破，直接影响长程 Agent 的成本与注意力质量。',
+    yearHint: '2026',
+  },
+
   {
     id: 'mcp',
     en: 'MCP',
@@ -1198,6 +1236,24 @@ export const edges: Edge[] = [
   { source: 'harness-s', target: 'grpo', type: 'stacks-with' },
   { source: 'harness-s', target: 'react-agent', type: 'enables' },
   { source: 'harness-s', target: 'tool-calling', type: 'stacks-with' },
+
+  { source: 'recsa', target: 'transformer', type: 'evolved-from' },
+  { source: 'recsa', target: 'zha', type: 'alternative-to' },
+  { source: 'recsa', target: 'latent-sparse-attention', type: 'alternative-to' },
+  { source: 'recsa', target: 'long-context', type: 'stacks-with' },
+  { source: 'recsa', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'recsa', target: 'rope', type: 'stacks-with' },
+
+  { source: 'speculative-listening', target: 'speculative-decoding', type: 'evolved-from' },
+  { source: 'speculative-listening', target: 'whisper-asr', type: 'stacks-with' },
+  { source: 'speculative-listening', target: 'omni-model', type: 'stacks-with' },
+  { source: 'speculative-listening', target: 'tool-calling', type: 'stacks-with' },
+
+  { source: 'coca-cola', target: 'tool-calling', type: 'evolved-from' },
+  { source: 'coca-cola', target: 'react-agent', type: 'stacks-with' },
+  { source: 'coca-cola', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'coca-cola', target: 'long-context', type: 'alternative-to' },
+  { source: 'coca-cola', target: 'embedding', type: 'stacks-with' },
 
 ]
 
