@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。同期还有 Dory、Best-of-Depth、Ouro 等循环深度变体。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。2026 开源循环 LLM 与残差设计密集出现，是参数高效预训练与推理深度缩放的关键架构叙事。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，共同把循环 LLM 推到可训、可服务的 2026 主线。',
     yearHint: '2025–2026',
   },
 
@@ -347,6 +347,18 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'p2-mopd',
+    en: 'P²-MOPD',
+    zh: '参数先验多教师在线蒸馏',
+    category: '训练与对齐',
+    explanation:
+      'P²-MOPD（Parameter-Prior Multi-teacher On-Policy Distillation，StepFun）：把多教师在线蒸馏里的每个学生模块写成「可训练权重 + 冻结专家任务向量的可学习混合」。专家不只提供 logits，而是作为参数先验（task vector）；联合优化混合系数 α 与学生权重，目标仍是 MOPD 损失。1.7B 学生平均恢复率约 94.7%（相对 MOPD 约 80.9%），域间更均衡，且约一半步数即可超过 MOPD 终局平均分（arXiv 2611.03953）。',
+    whyItMatters:
+      '把「专家权重方向」打开成蒸馏通道，而不只靠 logits 或事后 task-arithmetic 合并；是 2026 多域能力收口进单一学生的一条可复用配方。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -368,6 +380,18 @@ export const terms: Term[] = [
       'Speculative Listening：面向块交错全双工语音语言模型的无训练、无损解码。利用等待下一音频块到来的空闲算力，先按「静音块」草稿输出，并另开一条次优首 token 分支；草稿放入跨块假设池，真实音频到达后再验证。论文称约 95.3% 的块不改变输出、改变时约 88% 从首 token 起变。TickTock-Bench 上报 speak 块约 2.6–2.8×、工具调用块最高约 23.4×，响应起始解码延迟降约 73% 至 74–241 ms（arXiv 2611.06982）。',
     whyItMatters:
       '把推测解码从「输出侧草稿」搬到「输入到达前的时间缝」；是全双工语音助手把回合间隙压进人类约 200 ms 对话节拍的关键拼图，与标准 Speculative Decoding / FlashMap 互补。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'lowram',
+    en: 'LowRAM',
+    zh: '非对称 KV 缓存摊销压缩',
+    category: '推理与效率',
+    explanation:
+      'LowRAM（Huawei / UCL）：测试时非对称 KV 压缩——Key 走跨层低秩（xKV），Value 用每头的 key→value 摊销 MLP，在 prefill 拟合，仅对最差 token 保留残差。Value 侧约 4× 近无损压缩；再与量化、驱逐叠用，长上下文 LongBench 上约 26.9× 压缩仍保持约 94.5% 质量；选择性重建可把峰值 decode 吞吐提到约 5×（arXiv 2611.07025）。',
+    whyItMatters:
+      '把 K/V 当成结构不同的对象分别压缩，相对 MLA/GQA 的架构级压缩与均匀量化/驱逐，是 2026 训练后 KV 路径上的高信号新轴，可直接叠进现有服务栈。',
     yearHint: '2026',
   },
 
@@ -1254,6 +1278,17 @@ export const edges: Edge[] = [
   { source: 'coca-cola', target: 'agent-harness', type: 'stacks-with' },
   { source: 'coca-cola', target: 'long-context', type: 'alternative-to' },
   { source: 'coca-cola', target: 'embedding', type: 'stacks-with' },
+
+  { source: 'p2-mopd', target: 'sft', type: 'evolved-from' },
+  { source: 'p2-mopd', target: 'dpo', type: 'stacks-with' },
+  { source: 'p2-mopd', target: 'grpo', type: 'stacks-with' },
+  { source: 'p2-mopd', target: 'lora', type: 'stacks-with' },
+
+  { source: 'lowram', target: 'kv-cache', type: 'enables' },
+  { source: 'lowram', target: 'mla', type: 'alternative-to' },
+  { source: 'lowram', target: 'gqa-mqa', type: 'stacks-with' },
+  { source: 'lowram', target: 'gptq-awq', type: 'stacks-with' },
+  { source: 'lowram', target: 'paged-attention', type: 'stacks-with' },
 
 ]
 
