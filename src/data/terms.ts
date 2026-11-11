@@ -731,6 +731,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'a2-meas',
+    en: 'A²-MEAS',
+    zh: '纠错码具身多智能体框架',
+    category: 'Agent与工具',
+    explanation:
+      'A²-MEAS（Toward the Era of Agentic Embodied Intelligence）：以「代码作为扩展接口」的具身多智能体框架。纠错码（correction code）把纠错指令、锚定空间证据、执行历史与基座策略动作提案编码为条件表征；残差适配器在轨迹生成中用它改写动作专家隐状态。训练期把纠错知识吸收进可训练策略权重，部署时用新码引导且全部权重冻结。动作模型 A²-WLA 在 VLA 上叠加运动感知历史与潜在世界模型。BEHAVIOR 2026 完整公开 100 任务上全系统 Q-score 约 0.6411、整任务成功率约 45.40%；12 项真实桌面任务平均成功率约 57.92%，对比 π0.5 约 26.67%（arXiv 2611.09124）。',
+    whyItMatters:
+      '基础模型能指路，不等于机器人能从失败里恢复。把纠错做成可学习、并可在冻结策略上热插拔的接口，是 2026 长时程具身自主里把「诊断—纠正—再执行」规模化的一条清晰路径。',
+    yearHint: '2026',
+  },
+
   // ── 多模态 ────────────────────────────────────────────
   {
     id: 'vlm',
@@ -855,6 +868,19 @@ export const terms: Term[] = [
       'Wave Forcing（WF，SJTU DENG Lab）：面向实时长视频的块因果流式扩散。用 chunk-wise causal attention 让较新、更噪的块在去噪未完成前读取更早、更干净的块；再配合 Wave Parallelism / WaveRT，把错位去噪与历史缓存刷新分布到全模型副本上，实现流水填满后「每轮前向吐一块」（1F1C）。在 Wan2.1-T2V-1.3B 上 4-step 报道约 134.8 E2E FPS（8×H200）。',
     whyItMatters:
       '把「多步去噪质量」与「真·流式吞吐」一起做系统级共设计；相对 Rolling Forcing 等序列化路线，是 2026 实时视频生成与交互世界管线的高信号系统方案。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'lingbot-touch',
+    en: 'LingBot-Touch',
+    zh: '异构触觉表征基础模型',
+    category: '多模态',
+    explanation:
+      'LingBot-Touch：面向接触丰富灵巧操作的触觉基础模型，学习跨压阻、磁觉与视触觉等异构传感器的统一、可扩展表征，产出即插即用的触觉 token。这些 token 可无缝接入扩散策略与视觉-语言-动作（VLA）模型（如 π0.5、LingBot-VLA），把触觉理解从特定传感器物理中解耦，并便于扩展到新传感器类型。仿真与多硬件真机实验显示，该表征能提升复杂操作灵巧度并保持计算效率（arXiv 2611.12806）。',
+    whyItMatters:
+      '把「跨传感器触觉」做成可复用的模态接口，而不是为每种硬件单独训策略；是 2026 具身 VLA 补上接触物理、并让触觉数据可规模化的一条高信号路径。',
     yearHint: '2026',
   },
 
@@ -1017,6 +1043,19 @@ export const terms: Term[] = [
       '「一个模型通吃」让位于「多候选编排」：路由成为通用 AI 系统的一等公民。与 Serving Gateway 的多模型灰度、ACCT 的跨模型上下文交接互补，是 2026 降本与能力编排的理论与实验标尺。',
     yearHint: '2026',
   },
+
+  {
+    id: 'worldfoundry',
+    en: 'WorldFoundry',
+    zh: '世界智能统一基础设施',
+    category: '基础设施与部署',
+    explanation:
+      'WorldFoundry：面向生成式世界模型的开源推理与评测基础设施。先把生成式世界模型定义为「维护历史条件持久状态、随动作或干预更新、并生成观测与反事实下时序一致轨迹」的预测动力系统，再覆盖感知锚定、持久状态、可控变换、动力学预测与闭环交互。它统一模型与基准发现、运行时与资产准备、执行编排、产物管理与交互可视化；用清单、产物契约和证据感知计分卡把「能跑」与「已证实」分开。当前目录约 270 个模型、74 个基准、62 项指标（arXiv 2611.10771）。',
+    whyItMatters:
+      '视觉好看不等于会建模世界。给视频/3D/4D、具身动作与交互式世界系统一套可复现的比较底座，是 2026 把世界模型从生成演示推进到可度量世界智能的关键基建。',
+    yearHint: '2026',
+  },
+
 
 ]
 
@@ -1289,6 +1328,24 @@ export const edges: Edge[] = [
   { source: 'lowram', target: 'gqa-mqa', type: 'stacks-with' },
   { source: 'lowram', target: 'gptq-awq', type: 'stacks-with' },
   { source: 'lowram', target: 'paged-attention', type: 'stacks-with' },
+
+  { source: 'a2-meas', target: 'vla', type: 'evolved-from' },
+  { source: 'a2-meas', target: 'world-model', type: 'stacks-with' },
+  { source: 'a2-meas', target: 'multi-agent', type: 'stacks-with' },
+  { source: 'a2-meas', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'a2-meas', target: 'react-agent', type: 'stacks-with' },
+
+  { source: 'lingbot-touch', target: 'vla', type: 'enables' },
+  { source: 'lingbot-touch', target: 'sla', type: 'stacks-with' },
+  { source: 'lingbot-touch', target: 'diffusion', type: 'stacks-with' },
+  { source: 'lingbot-touch', target: 'world-model', type: 'stacks-with' },
+
+  { source: 'worldfoundry', target: 'world-model', type: 'enables' },
+  { source: 'worldfoundry', target: 'l3g-world', type: 'stacks-with' },
+  { source: 'worldfoundry', target: 'vla', type: 'stacks-with' },
+  { source: 'worldfoundry', target: 'benchmarks', type: 'stacks-with' },
+  { source: 'worldfoundry', target: 'mlops-llmops', type: 'stacks-with' },
+
 
 ]
 
