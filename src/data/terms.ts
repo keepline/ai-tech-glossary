@@ -358,6 +358,17 @@ export const terms: Term[] = [
       '把「专家权重方向」打开成蒸馏通道，而不只靠 logits 或事后 task-arithmetic 合并；是 2026 多域能力收口进单一学生的一条可复用配方。',
     yearHint: '2026',
   },
+  {
+    id: 'tree-ising',
+    en: 'Tree-Ising',
+    zh: '比特级伊辛权重修补',
+    category: '训练与对齐',
+    explanation:
+      'Tree-Ising：把权重空间编程里「智能体读权重、写修补」改写成对模型原生 BF16 权重的稀疏离散优化。用状态树表示权重，允许的编辑仅是符号翻转与保共享指数的二的幂次指数平移；前向统计定义目标（削弱循环方向、加强收束方向、保住有效 token 的层输出），并精确分解为按输出行独立的 QUBO/伊辛问题，在 GPU 上用模拟退火或量子启发的模拟分岔求解。在智能体原先针对的两层上，MATH-500 由基座 7.9%、智能体修补 51.7% 提到退火 54.6%、模拟分岔 55.1%，改动权重少约 13%–17%、BF16 比特翻转少约 2.2–2.3 倍，仅需 4 次前向、约 0.90 美元 GPU 时间。同一配方把 Qwen3.5-2B 的 greedy GSM8K 从 21.6% 提到 69.4%（arXiv 2611.14210）。',
+    whyItMatters:
+      '把「改模型」从高成本的智能体权重手术，收成可在 GPU（乃至量子退火/QAOA）上求解的比特级组合优化；是 2026 权重空间编程之后，一条可复现、更稀疏也更便宜的模型修补路径。',
+    yearHint: '2026',
+  },
 
   // ── 推理与效率 ────────────────────────────────────────
   {
@@ -743,6 +754,17 @@ export const terms: Term[] = [
       '基础模型能指路，不等于机器人能从失败里恢复。把纠错做成可学习、并可在冻结策略上热插拔的接口，是 2026 长时程具身自主里把「诊断—纠正—再执行」规模化的一条清晰路径。',
     yearHint: '2026',
   },
+  {
+    id: 'wicl',
+    en: 'WICL / World In-Context Learning',
+    zh: '世界上下文学习',
+    category: 'Agent与工具',
+    explanation:
+      'World In-Context Learning（WICL）：针对「技能写进权重就绑定训练分布」的问题，让冻结模型从一条演示出发，在世界（如仿真器）里演练任务，把反馈写入上下文而非权重。其洞察是：上下文里学到的是语义（步骤与物体角色）而非外观，因而跨场景可迁移。RoboScript 实现该范式：单次演示在仿真中演练后冻结为 Task Memory，再以数据隔离部署到新场景。在 RoboTwin 2.0 全部 50 项任务上，每种任务仅一条演示、无梯度更新，干净与随机设置平均成功率约 83.4%，高出最强训练动作策略 20 多个百分点，并可通过跨本体记忆适配迁移到真机双臂（arXiv 2611.12885）。',
+    whyItMatters:
+      '把「世界」放进上下文学习环：机器人不必为每个新场景微调权重，也能把一条演示练成可迁移的任务记忆；是 2026 具身智能体相对模仿学习/VLA 权重写入的一条高信号替代路径。',
+    yearHint: '2026',
+  },
 
   // ── 多模态 ────────────────────────────────────────────
   {
@@ -785,7 +807,7 @@ export const terms: Term[] = [
     zh: '世界模型',
     category: '多模态',
     explanation:
-      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano 等开源交互仿真检查点（动作/空间控制→多视角与 LiDAR 观测），进一步把闭环、可流式的交互世界仿真推到可用。',
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型。',
     whyItMatters:
       '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；实时交互世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
     yearHint: '2024–2026',
@@ -881,6 +903,17 @@ export const terms: Term[] = [
       'LingBot-Touch：面向接触丰富灵巧操作的触觉基础模型，学习跨压阻、磁觉与视触觉等异构传感器的统一、可扩展表征，产出即插即用的触觉 token。这些 token 可无缝接入扩散策略与视觉-语言-动作（VLA）模型（如 π0.5、LingBot-VLA），把触觉理解从特定传感器物理中解耦，并便于扩展到新传感器类型。仿真与多硬件真机实验显示，该表征能提升复杂操作灵巧度并保持计算效率（arXiv 2611.12806）。',
     whyItMatters:
       '把「跨传感器触觉」做成可复用的模态接口，而不是为每种硬件单独训策略；是 2026 具身 VLA 补上接触物理、并让触觉数据可规模化的一条高信号路径。',
+    yearHint: '2026',
+  },
+  {
+    id: 'world-action-model',
+    en: 'World Action Model / WAM',
+    zh: '世界-动作模型',
+    category: '多模态',
+    explanation:
+      'World Action Model（WAM，世界-动作模型）：在同一模型里联合预测未来世界（常为视频/观测）与可执行动作，把世界模型的前瞻和 VLA 的控制接口合在一起。相对「只预测世界」或「观测+语言直接出动作」的反应式 VLA，WAM 先（或同时）想象动作会把场景变成什么样，再给出动作块。2026 年 11 月 Runway 开源 Praxis-1（27B MoE 扩散 Transformer，Apache 2.0）：一次调用预测未来视频块与约 1.6 秒动作（15 Hz、24 步），在 NVIDIA RoboLab-120 的 1,200 回合上成功率约 46.2%，高于 FLUX 3 Action（约 42.9%）、Cosmos3 Nano（约 36.8%）与 π0.5（约 28.0%）。',
+    whyItMatters:
+      '具身模型若只会「看了就做」，很难在接触与时序上提前纠错；把世界预测和动作生成绑在同一前向里，是 2026 开源机器人基础模型相对纯 VLA 的一条清晰分流。',
     yearHint: '2026',
   },
 
@@ -1345,6 +1378,23 @@ export const edges: Edge[] = [
   { source: 'worldfoundry', target: 'vla', type: 'stacks-with' },
   { source: 'worldfoundry', target: 'benchmarks', type: 'stacks-with' },
   { source: 'worldfoundry', target: 'mlops-llmops', type: 'stacks-with' },
+
+  { source: 'tree-ising', target: 'weight-space-programming', type: 'evolved-from' },
+  { source: 'tree-ising', target: 'sft', type: 'alternative-to' },
+  { source: 'tree-ising', target: 'lora', type: 'alternative-to' },
+  { source: 'tree-ising', target: 'self-assessment', type: 'stacks-with' },
+
+  { source: 'wicl', target: 'world-model', type: 'stacks-with' },
+  { source: 'wicl', target: 'vla', type: 'alternative-to' },
+  { source: 'wicl', target: 'memory-agent', type: 'stacks-with' },
+  { source: 'wicl', target: 'react-agent', type: 'stacks-with' },
+
+  { source: 'world-action-model', target: 'world-model', type: 'evolved-from' },
+  { source: 'world-action-model', target: 'vla', type: 'alternative-to' },
+  { source: 'world-action-model', target: 'diffusion', type: 'stacks-with' },
+  { source: 'world-action-model', target: 'dit', type: 'stacks-with' },
+  { source: 'world-action-model', target: 'worldfoundry', type: 'stacks-with' },
+  { source: 'world-action-model', target: 'wicl', type: 'stacks-with' },
 
 
 ]
