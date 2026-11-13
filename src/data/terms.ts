@@ -369,6 +369,17 @@ export const terms: Term[] = [
       '把「改模型」从高成本的智能体权重手术，收成可在 GPU（乃至量子退火/QAOA）上求解的比特级组合优化；是 2026 权重空间编程之后，一条可复现、更稀疏也更便宜的模型修补路径。',
     yearHint: '2026',
   },
+  {
+    id: 'steerdistill',
+    en: 'SteerDistill',
+    zh: '闭环教师转向量化蒸馏',
+    category: '训练与对齐',
+    explanation:
+      'SteerDistill：面向 LLM Agent 的量化感知蒸馏（QAD）。全精度教师根据学生失败轨迹与成功参考，指出被忽略的任务约束或环境条件，引导学生从出错前上下文改写动作，并用执行反馈迭代修正，直到通过局部验证（closed-loop teacher steering）；随后在无指导条件下内化：纠正回合对齐被转向学生的预测，其余回合对齐 BF16 教师。五类智能体基准、三款模型上，W4A16 平均分超出最强量化基线约 1.67–2.18 分，并与 BF16 相差不到 1 分；τ²-Bench 成功率比 QeRL 高约 1.84 个百分点，训练 GPU 时数少约 67%。转向本身把回合级 Pass@4 从 9.6% 提到 82.3%（arXiv 2611.13410）。',
+    whyItMatters:
+      '量化让 Agent 更便宜，却常在关键回合漏看约束。SteerDistill 把「在学生自己的失败上下文里长出可验证纠正」做成可蒸馏的闭环，是 2026 把低比特 Agent 拉回满精度成功率的一条清晰配方。',
+    yearHint: '2026',
+  },
 
   // ── 推理与效率 ────────────────────────────────────────
   {
@@ -539,6 +550,17 @@ export const terms: Term[] = [
       'Asymmetric Cross-LLM Context Transfer：在同族不同规模模型之间迁移 KV Cache（token cartography、动态头分配与编译），让分层路由把长上下文交接出去而无需完整重 prefill。报道在约 19k token 交接上可大幅加速，并约减 75% KV 体积。',
     whyItMatters:
       '把「小模型接请求、大模型接手长上下文」做成可工程化的缓存交接，而不是每次冷启动；是推测解码与网关路由之外，直接砍 TTFT/算力的关键拼图。',
+    yearHint: '2026',
+  },
+  {
+    id: 'sinkstate',
+    en: 'SinkState',
+    zh: '线性注意力汇点状态压缩',
+    category: '推理与效率',
+    explanation:
+      'SinkState：观察到混合模型里线性注意力层的 Q/K/V 会稳定集中在低维子空间（linear attention sink），循环状态实际低秩且秩随状态变化，但现有服务仍按稠密状态反复读写。方法在推理全程把每个循环状态存成自适应低秩因子，用缓冲更新与仅针对主子空间的局部 SVD，并在 CPU 上异步合并剩余分量。在 4B–120B、含 Mamba-2 与 GDN 层的四款混合模型上，相对 Mamba-SSM 与 FLA，循环状态峰值显存最多降约 2.6×（平均约 1.9×），解码最多加速约 1.58×（平均约 1.25×），精度基本保持（arXiv 2611.14246）。',
+    whyItMatters:
+      '混合骨干把历史压进固定循环状态后，带宽瓶颈从 KV 转移到状态张量。SinkState 把「汇点」现象变成可服务的低秩压缩，与面向 Softmax KV 的 LowRAM 互补，是 2026 混合 LLM 高并发解码的一条新轴。',
     yearHint: '2026',
   },
 
@@ -1088,7 +1110,17 @@ export const terms: Term[] = [
       '视觉好看不等于会建模世界。给视频/3D/4D、具身动作与交互式世界系统一套可复现的比较底座，是 2026 把世界模型从生成演示推进到可度量世界智能的关键基建。',
     yearHint: '2026',
   },
-
+  {
+    id: 'evolving-infra',
+    en: 'Evolving Infra',
+    zh: '智能体自适应演化式服务',
+    category: '基础设施与部署',
+    explanation:
+      'Evolving Infra（MIT HAN Lab 等）：面向动态智能体负载的服务框架。把预填充/解码算力分配与 KV 缓存管理解耦，节点可在线切换阶段而无需重启；在线规划器按负载组成调整 PD 拆分，智能体感知的分布式 KV 管理器则用上下文管理信号指导路由、迁移与驱逐，避免回收智能体稍后仍会复用的前缀缓存。在编程、数学与计算机操作任务上，用 GLM-5.2 与 Kimi K2.6、最多 256 张 GB300，相对 NVIDIA 生产框架 Dynamo，平均端到端请求时延与 P95 TTFT 最多分别降约 4.1× 与 14×（arXiv 2611.12304）。',
+    whyItMatters:
+      '静态 PD 拆分跟不上智能体负载的节律与上下文压缩；把「算力角色」和「可复用 KV」分开演化，是 2026 大规模 Agent 服务相对通用推理引擎的关键适配层。',
+    yearHint: '2026',
+  },
 
 ]
 
@@ -1396,8 +1428,27 @@ export const edges: Edge[] = [
   { source: 'world-action-model', target: 'worldfoundry', type: 'stacks-with' },
   { source: 'world-action-model', target: 'wicl', type: 'stacks-with' },
 
+  { source: 'steerdistill', target: 'gptq-awq', type: 'stacks-with' },
+  { source: 'steerdistill', target: 'p2-mopd', type: 'stacks-with' },
+  { source: 'steerdistill', target: 'react-agent', type: 'stacks-with' },
+  { source: 'steerdistill', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'steerdistill', target: 'agent-harness', type: 'stacks-with' },
+
+  { source: 'sinkstate', target: 'mamba', type: 'stacks-with' },
+  { source: 'sinkstate', target: 'lowram', type: 'stacks-with' },
+  { source: 'sinkstate', target: 'rimuru', type: 'stacks-with' },
+  { source: 'sinkstate', target: 'inference-engine', type: 'stacks-with' },
+
+  { source: 'evolving-infra', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'evolving-infra', target: 'continuous-batching', type: 'stacks-with' },
+  { source: 'evolving-infra', target: 'paged-attention', type: 'stacks-with' },
+  { source: 'evolving-infra', target: 'serving-gateway', type: 'stacks-with' },
+  { source: 'evolving-infra', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'evolving-infra', target: 'computer-use', type: 'stacks-with' },
+  { source: 'evolving-infra', target: 'vllm', type: 'stacks-with' },
 
 ]
+
 
 
 export function getTermById(id: string): Term | undefined {
