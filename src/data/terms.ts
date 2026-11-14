@@ -564,6 +564,18 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'frequency-aware-remasking',
+    en: 'Frequency-Aware Remasking / FAR',
+    zh: '频率感知重掩码',
+    category: '推理与效率',
+    explanation:
+      'Frequency-Aware Remasking（FAR）：扩散语言模型（DLM）的测试时扩展解码策略。现有确定性感知（certainty-aware）重掩码按瞬时置信度或熵决定提交/重掩哪些 token，但局部信号在难题上会把所有样本赶向同一条错误推理路径。FAR 先用快速基线采样器解决容易题，再对剩余难题做频率感知重掩码：跟踪各位置预测在去噪步间的改写频率，并用 Support-Aware Frequency Selection（SAFE）优先提交高频变化位置，使样本在模型尚未定夺处分叉，而非塌缩到偏好轨迹。在 LLaDA-8B-Instruct 与 Dream-7B-Instruct 上，相对强自适应分配基线，MATH-500 绝对准确率最多分别提升约 3.73 与 7.33 个百分点，HumanEval 绝对覆盖率最多分别提升约 11.39 与 10.98 个百分点；对基线在 100 次采样后仍未解开的题，可再恢复约 3.75%–18.75%（arXiv 2611.10486）。',
+    whyItMatters:
+      'DLM 的测试时扩展不只是「多采几次」，还取决于提交顺序。FAR 用轨迹级改写频率纠正「假自信」，是 2026 扩散语言模型在推理与代码题上把计算分配到难例的一条可复现配方。',
+    yearHint: '2026',
+  },
+
   // ── RAG与记忆 ─────────────────────────────────────────
   {
     id: 'rag',
@@ -636,6 +648,18 @@ export const terms: Term[] = [
       '为 Agent 设计的短期工作记忆与长期持久记忆（摘要、向量库、结构化档案），使其跨会话保持一致性与个性化。',
     whyItMatters:
       '没有可靠记忆，Agent 很难从「单次工具调用」进化为「可持续助手」。',
+  },
+
+  {
+    id: 'wikitrace',
+    en: 'WikiTrace / Evidence-Linked Memory',
+    zh: '证据链接记忆（WikiTrace）',
+    category: 'RAG与记忆',
+    explanation:
+      'WikiTrace：一种证据链接记忆（evidence-linked memory）。外部记忆常把过去轨迹蒸馏成简短教训供新任务复用，但教训往往只带成败标签、不附原轨迹，智能体无法核验，从而出现「记忆诱发退化」（memory-induced degradation）——加上记忆后反而做砸原本能独立做对的题。WikiTrace 把每条洞察同时链接到「该轨迹为何成败」的摘要以及原始轨迹；新任务上先从全部洞察出发，一旦某条缺少行动细节、与其他洞察冲突、或来自失败任务，就沿链接用终端工具下钻，补全细节或在行动前修正洞察。在五个智能体基准上持续优于既有记忆方法以及「只给同样洞察、不给证据链」的对照，并降低记忆诱发退化（arXiv 2611.14320）。',
+    whyItMatters:
+      '记忆不是越多越好：平均准确率会掩盖「记住了错误教训」。把教训绑回可核查证据，是 2026 把 Agent 记忆从「摘要仓库」推进到「可追溯、可纠错经验」的关键一步。',
+    yearHint: '2026',
   },
 
   // ── Agent与工具 ───────────────────────────────────────
@@ -1022,6 +1046,18 @@ export const terms: Term[] = [
       'FlashProve（Anthropic，2026-11）：面向大模型服务的 zkSNARK 可证明推理原型。提供商先对权重做承诺，再为每次（或批后）推理生成短证明，使用户/审计方在不知权重的前提下验证「输出确由所承诺模型产生」。在 Llama 4 Maverick（约 400B MoE、4-bit）上单卡 H100 约 110 tok/s 出证、约 19 MB/1k-token 请求；证明本身隐藏权重，架构不隐藏。附 Lean 形式化顶层安全陈述与可执行验证器。',
     whyItMatters:
       '解决「你怎么知道对面真是你付费的那个模型」：路由偷换、攻击篡改 token、监管核验算力是否真在跑批准模型等场景需要密码学级归因。把 zkML 从研究数量级推到可开源复现的生产讨论门槛，与 Guardrails / Self-Assessment 互补。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'llmon',
+    en: 'LLMON / LLM Object Notation',
+    zh: 'LLMON（LLM 对象记号）',
+    category: '评测与安全',
+    explanation:
+      'LLMON（LLM Object Notation，读作 lemon）：IBM 提出的 LLM 原生标记语言。把系统策略、指令、数据、文档、工具定义与工具结果分别写入带保留特殊分隔符、可按 ID 寻址的块，再由 exec 块显式绑定「执行哪条指令、作用于哪些输入、输出写到何处」。模型被训练遵守特权规则：exec 指向的指令与系统策略才是权威命令，经 input 引用的数据、文档、工具模式与工具结果只被当作只读输入，无论其措辞多像指令。在 Granite 4.1 的 3B/8B 预览模型上，用约 46 亿 token 的结构化语料（含干扰指令/无关数据）做 SFT 再强化学习，间接提示注入攻击成功率从约 53%–100% 降到约 0.02%–5.6%，同时保持通用能力；无需改架构（arXiv 2610.38120，2026-11 预览发布）。',
+    whyItMatters:
+      '提示注入的根因是「上下文里所有 token 被一视同仁」。用可寻址绑定把指令与数据分开，是 2026 把提示注入防御从外挂护栏推进到模型输入语义本身的一条新路线，与 Guardrails / Red Teaming 互补。',
     yearHint: '2026',
   },
 
@@ -1446,6 +1482,23 @@ export const edges: Edge[] = [
   { source: 'evolving-infra', target: 'agent-harness', type: 'stacks-with' },
   { source: 'evolving-infra', target: 'computer-use', type: 'stacks-with' },
   { source: 'evolving-infra', target: 'vllm', type: 'stacks-with' },
+
+  { source: 'frequency-aware-remasking', target: 'diffusion-lm', type: 'stacks-with' },
+  { source: 'frequency-aware-remasking', target: 'speculative-decoding', type: 'stacks-with' },
+  { source: 'frequency-aware-remasking', target: 'dtca', type: 'stacks-with' },
+
+  { source: 'wikitrace', target: 'memory-agent', type: 'evolved-from' },
+  { source: 'wikitrace', target: 'agentic-rag', type: 'stacks-with' },
+  { source: 'wikitrace', target: 'react-agent', type: 'stacks-with' },
+  { source: 'wikitrace', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'wikitrace', target: 'agent-skills', type: 'stacks-with' },
+
+  { source: 'llmon', target: 'prompt-injection', type: 'enables' },
+  { source: 'llmon', target: 'guardrails', type: 'stacks-with' },
+  { source: 'llmon', target: 'red-teaming', type: 'stacks-with' },
+  { source: 'llmon', target: 'sft', type: 'stacks-with' },
+  { source: 'llmon', target: 'rag', type: 'stacks-with' },
+  { source: 'llmon', target: 'tool-calling', type: 'stacks-with' },
 
 ]
 
