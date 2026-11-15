@@ -853,7 +853,7 @@ export const terms: Term[] = [
     zh: '世界模型',
     category: '多模态',
     explanation:
-      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型。',
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型；互惠世界模型把意图推理与视听实现放进同一全双工交互循环。',
     whyItMatters:
       '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；实时交互世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
     yearHint: '2024–2026',
@@ -963,6 +963,29 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'physloop',
+    en: 'PhysLoop',
+    zh: '物理约束视频自改进环',
+    category: '多模态',
+    explanation:
+      'PhysLoop（北京大学与 ByteDance Seed 等，2026-11）：面向视频生成模型的物理自改进统一壳层。大语言模型具备物理知识，但难以直接为视频模型提供可靠训练信号；PhysLoop 用代码智能体在沙盒中把请求写成可执行仿真场景，先经内部仿真器做物理校验，再做外观精修与成片复验，从而把物理知识蒸馏成物理一致的视频。同一壳层既用于可控训练数据构造，也用于推理时局部修复。默认组合为 GPT-6 Astra + Seedance 2.5。发布 PhysLoop-100K（约 100K 条、覆盖约 2.5K 个物理事件）以及评测集 PhysLoop-Gen / PhysLoop-Repair：在 100 题固定集上，默认精修路线任务成功率约 85%，对照纯文本 Seedance 2.5 约 73%；修复成功率约 86%，对照最强独立基线约 19.33%。作者亦指出它尚未闭合完整的递归自改进环（arXiv 2611.16748）。',
+    whyItMatters:
+      '视频模型「看起来真」往往不等于「物理上对」。用仿真约束把 LLM 的物理知识变成可核验的生成与修复信号，是 2026 把视频生成推向递归自改进的一条可复现路径。',
+    yearHint: '2026',
+  },
+  {
+    id: 'duo-rwm',
+    en: 'Duo / Reciprocal World Model',
+    zh: '互惠世界模型（Duo）',
+    category: '多模态',
+    explanation:
+      'Reciprocal World Model（RWM，互惠世界模型）：主张智能与物理现实同为「世界」的构成，要求模型在全双工实时交互中同时具备 Intent（交互意图与是否参与的认知）和 Realization（连贯的视听行为生成）。Duo v1 是其模块化实现：自回归 Intent 模块与因果视听 Realization 模块在统一时间线上同步 token，按约 17 帧（24 fps 下约 0.71 秒）分块；模块内/跨块的注意力掩码禁止看到未来输入，再用双向 rollout 蒸馏缓解分布偏移。两侧持续感知实时音频、视频与文本，支持自发对话与打断。2026-11-13 发布 Duo v1 权重及 vLLM-Omni / SGLang-Omni 流式管线，当前预览以基础视听对话为主（arXiv 2611.15131）。',
+    whyItMatters:
+      '既有世界模型多在「模拟物理世界」，把推理决策留在外部控制器。把意图与视听实现写成同一全双工时间线，是 2026 把世界模型从开环仿真推进到可随时插话、可被打断的交互智能的一条新路线。',
+    yearHint: '2026',
+  },
+
   // ── 评测与安全 ────────────────────────────────────────
   {
     id: 'llm-judge',
@@ -1058,6 +1081,18 @@ export const terms: Term[] = [
       'LLMON（LLM Object Notation，读作 lemon）：IBM 提出的 LLM 原生标记语言。把系统策略、指令、数据、文档、工具定义与工具结果分别写入带保留特殊分隔符、可按 ID 寻址的块，再由 exec 块显式绑定「执行哪条指令、作用于哪些输入、输出写到何处」。模型被训练遵守特权规则：exec 指向的指令与系统策略才是权威命令，经 input 引用的数据、文档、工具模式与工具结果只被当作只读输入，无论其措辞多像指令。在 Granite 4.1 的 3B/8B 预览模型上，用约 46 亿 token 的结构化语料（含干扰指令/无关数据）做 SFT 再强化学习，间接提示注入攻击成功率从约 53%–100% 降到约 0.02%–5.6%，同时保持通用能力；无需改架构（arXiv 2610.38120，2026-11 预览发布）。',
     whyItMatters:
       '提示注入的根因是「上下文里所有 token 被一视同仁」。用可寻址绑定把指令与数据分开，是 2026 把提示注入防御从外挂护栏推进到模型输入语义本身的一条新路线，与 Guardrails / Red Teaming 互补。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'so-arena',
+    en: 'SO-Arena / System One Models',
+    zh: '系统一决策模型评测场',
+    category: '评测与安全',
+    explanation:
+      'System One models（系统一/决策模型）在单次前向中对预定义选项给出分布，不做冗长思维链生成，以便低延迟完成路由、工具选择与完成校验等常规决策。SO-Arena（NUS，2026-11）是面向此类模型的基准：2,919 道题覆盖 11 个领域、五个能力族（语义理解、知识与推理、安全与政策合规、证据评估、智能体任务完成），并人工核验参考标签是否可由模型可见输入支持；其中 9 个领域按域内难度分层，智能体任务在沙盒中交互评测，推理密集型任务还可对照 System Two。可靠性由两项互补指标刻画：选项集受控变化（如打乱顺序）下的决策稳定性，以及「正确选项缺失」时的识别能力。对 21 个模型的评测显示，扩展规模与追加推理的收益因领域而异，且能力最强的 System One 模型在可靠性上仅排第七（arXiv 2611.15777）。',
+    whyItMatters:
+      '决策模型正在成为独立产品类别，但沿用生成式刷榜会漏掉「改选项就改答案」「没有正确项仍硬选」这类风险。把能力谱与决策可靠性分成两个维度，是 2026 评测路由/裁判/分类器类模型的新基准。',
     yearHint: '2026',
   },
 
@@ -1499,6 +1534,26 @@ export const edges: Edge[] = [
   { source: 'llmon', target: 'sft', type: 'stacks-with' },
   { source: 'llmon', target: 'rag', type: 'stacks-with' },
   { source: 'llmon', target: 'tool-calling', type: 'stacks-with' },
+
+  { source: 'physloop', target: 'world-model', type: 'stacks-with' },
+  { source: 'physloop', target: 'diffusion', type: 'stacks-with' },
+  { source: 'physloop', target: 'a-rsi', type: 'stacks-with' },
+  { source: 'physloop', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'physloop', target: 'react-agent', type: 'stacks-with' },
+
+  { source: 'duo-rwm', target: 'world-model', type: 'evolved-from' },
+  { source: 'duo-rwm', target: 'omni-model', type: 'stacks-with' },
+  { source: 'duo-rwm', target: 'world-action-model', type: 'stacks-with' },
+  { source: 'duo-rwm', target: 'whisper-asr', type: 'stacks-with' },
+  { source: 'duo-rwm', target: 'speculative-listening', type: 'stacks-with' },
+  { source: 'duo-rwm', target: 'wave-forcing', type: 'stacks-with' },
+
+  { source: 'so-arena', target: 'benchmarks', type: 'evolved-from' },
+  { source: 'so-arena', target: 'arena-eval', type: 'stacks-with' },
+  { source: 'so-arena', target: 'llm-judge', type: 'stacks-with' },
+  { source: 'so-arena', target: 'route-anything', type: 'stacks-with' },
+  { source: 'so-arena', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'so-arena', target: 'agent-harness', type: 'stacks-with' },
 
 ]
 
