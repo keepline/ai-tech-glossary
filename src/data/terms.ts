@@ -316,7 +316,7 @@ export const terms: Term[] = [
     zh: '权重空间编程',
     category: '训练与对齐',
     explanation:
-      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。',
+      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。2026-11 的 AHA（self-supervised weight-space programming）进一步表明：同一类秩一权重编辑的方向、层与神经元，都可以从模型自身采样与线性规划得到，全程不需要外部语言模型、梯度或训练循环；在 Qwen3.5-0.8B 上可达到与智能体编辑相当的效果，并在 2B 上不依赖该智能体编辑而同样提升。',
     whyItMatters:
       '把「改模型」从训练循环挪到可解释的权重手术：相对 LoRA/SFT 的参数适配，提供可审计的局部编辑与可解释性接口，也给红队/自评估打开读权重诊断通道。',
     yearHint: '2026',
@@ -378,6 +378,19 @@ export const terms: Term[] = [
       'SteerDistill：面向 LLM Agent 的量化感知蒸馏（QAD）。全精度教师根据学生失败轨迹与成功参考，指出被忽略的任务约束或环境条件，引导学生从出错前上下文改写动作，并用执行反馈迭代修正，直到通过局部验证（closed-loop teacher steering）；随后在无指导条件下内化：纠正回合对齐被转向学生的预测，其余回合对齐 BF16 教师。五类智能体基准、三款模型上，W4A16 平均分超出最强量化基线约 1.67–2.18 分，并与 BF16 相差不到 1 分；τ²-Bench 成功率比 QeRL 高约 1.84 个百分点，训练 GPU 时数少约 67%。转向本身把回合级 Pass@4 从 9.6% 提到 82.3%（arXiv 2611.13410）。',
     whyItMatters:
       '量化让 Agent 更便宜，却常在关键回合漏看约束。SteerDistill 把「在学生自己的失败上下文里长出可验证纠正」做成可蒸馏的闭环，是 2026 把低比特 Agent 拉回满精度成功率的一条清晰配方。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'foam',
+    en: 'FOAM',
+    zh: '单侧因子化 Adam 矩优化器',
+    category: '训练与对齐',
+    explanation:
+      'FOAM（Factored One-sided Adam-Moment，NAVER AI Lab，NeurIPS 2026）：SOAP 的轻量化变体，目标是在接近 AdamW 的开销下保住二阶优化器的预训练收益。两点结构简化：只保留输入侧 Kronecker 预条件、去掉输出侧因子以减少显存并省掉一次特征分解（在输出曲率近似对角时近乎无损）；再用按行/列统计的因子化 Adam 二阶矩，替代 SOAP 在旋转空间中的稠密二阶矩。在 K-FAC Fisher 与对角输出曲率假设下可精确恢复 SOAP 的稠密二阶矩，实测 K-FAC 偏离约 15%–20%、对更新影响可忽略。在 124M–760M 的 LLM 预训练上，验证损失与 SOAP、Muon 相当，优化器状态约为 SOAP 的一半，墙上时间进入 Muon 量级，并在三倍学习率范围内保持稳健；作者未报告更大尺度结果（arXiv 2611.16905）。',
+    whyItMatters:
+      'Shampoo / SOAP 等二阶方法更快，但优化器状态与特征分解仍贵。FOAM 说明 SOAP 的收益不必支付 SOAP 的成本，是 2026 把二阶优化推进到可实用预训练预算的一条清晰配方。',
     yearHint: '2026',
   },
 
@@ -573,6 +586,19 @@ export const terms: Term[] = [
       'Frequency-Aware Remasking（FAR）：扩散语言模型（DLM）的测试时扩展解码策略。现有确定性感知（certainty-aware）重掩码按瞬时置信度或熵决定提交/重掩哪些 token，但局部信号在难题上会把所有样本赶向同一条错误推理路径。FAR 先用快速基线采样器解决容易题，再对剩余难题做频率感知重掩码：跟踪各位置预测在去噪步间的改写频率，并用 Support-Aware Frequency Selection（SAFE）优先提交高频变化位置，使样本在模型尚未定夺处分叉，而非塌缩到偏好轨迹。在 LLaDA-8B-Instruct 与 Dream-7B-Instruct 上，相对强自适应分配基线，MATH-500 绝对准确率最多分别提升约 3.73 与 7.33 个百分点，HumanEval 绝对覆盖率最多分别提升约 11.39 与 10.98 个百分点；对基线在 100 次采样后仍未解开的题，可再恢复约 3.75%–18.75%（arXiv 2611.10486）。',
     whyItMatters:
       'DLM 的测试时扩展不只是「多采几次」，还取决于提交顺序。FAR 用轨迹级改写频率纠正「假自信」，是 2026 扩散语言模型在推理与代码题上把计算分配到难例的一条可复现配方。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'hdm',
+    en: 'HDM / Zero-or-T Thinking',
+    zh: '零或T混合决策模型',
+    category: '推理与效率',
+    explanation:
+      'Zero-or-T thinking（零或T思考）：同一模型要么在单次前向的隐式推理中直接给出决策、不生成任何 token，要么付出 T 个 token 做完整自回归推理，中间不再「少想一点」。Hybrid Decision Model（HDM，华为诺亚等，2026-11）用冻结骨干同时承担快/慢两种模式，并由轻量自路由块在生成开始前估计「思考的价值」（慢模式相对快模式的期望增益）；仅当该价值超过请求级价格 λ 时才升级到慢模式。无逐步标签的回合制智能体任务上，用 CDPO（Calibrated Decision Policy Optimisation）从回合回报训练该路由块。JevBench 上 HDM-4B 得分 0.857、对照 Jev 的 0.851，中位延迟 0.179 秒对 0.652 秒（约 -72.5%）；在 MiniWoB 上 HDM-27B 把 token 成本降低约 80.1%（arXiv 2611.16961）。',
+    whyItMatters:
+      '自适应推理通常仍要逐 token 写出答案，只是缩短或切换模式。把「要不要想」做成可定价的快慢路由，并把快模式收成真正的零生成决策，是 2026 把系统一决策与系统二推理写进同一模型的一条高信号路径。',
     yearHint: '2026',
   },
 
@@ -983,6 +1009,19 @@ export const terms: Term[] = [
       'Reciprocal World Model（RWM，互惠世界模型）：主张智能与物理现实同为「世界」的构成，要求模型在全双工实时交互中同时具备 Intent（交互意图与是否参与的认知）和 Realization（连贯的视听行为生成）。Duo v1 是其模块化实现：自回归 Intent 模块与因果视听 Realization 模块在统一时间线上同步 token，按约 17 帧（24 fps 下约 0.71 秒）分块；模块内/跨块的注意力掩码禁止看到未来输入，再用双向 rollout 蒸馏缓解分布偏移。两侧持续感知实时音频、视频与文本，支持自发对话与打断。2026-11-13 发布 Duo v1 权重及 vLLM-Omni / SGLang-Omni 流式管线，当前预览以基础视听对话为主（arXiv 2611.15131）。',
     whyItMatters:
       '既有世界模型多在「模拟物理世界」，把推理决策留在外部控制器。把意图与视听实现写成同一全双工时间线，是 2026 把世界模型从开环仿真推进到可随时插话、可被打断的交互智能的一条新路线。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'g-star',
+    en: 'G-STAR',
+    zh: '组规模协同压缩自回归生成',
+    category: '多模态',
+    explanation:
+      'G-STAR（Group-Scaled Token Capacity，北京大学与 Meituan LongCat 等，2026-11）：面向离散自回归图像生成的空间–组规模协同缩放框架。在乘积量化与固定名义信息预算下，组大小应随每轴空间压缩因子二次放大，从而在深度压缩时保住表示容量。据此可做到 32×、乃至有效 64× 压缩，并配合半自回归解码器：组内特征并行计算、再用轻量因果建模处理组内依赖。GSTAR-Tokenizer 在 32×（f32g16）上 ImageNet 重建 PSNR 约 25.12 dB，高于若干 16× 基线。文生图在 GenEval、DPG-Bench、PRISM、LongText-Bench 与 Qwen-Image-Bench 上与领先模型相当；1024×1024 分辨率下相对先前离散自回归模型约 20× 加速，单张在一块 NVIDIA H200 上约 2.5 秒（arXiv 2611.13004）。',
+    whyItMatters:
+      '离散自回归生成长期卡在「序列更长短不了、压得太狠质量掉」的权衡。让组容量与空间压缩一起放大，是 2026 把高压缩视觉 token 做成低延迟高质量图像生成的一条可复现原则。',
     yearHint: '2026',
   },
 
@@ -1554,6 +1593,24 @@ export const edges: Edge[] = [
   { source: 'so-arena', target: 'route-anything', type: 'stacks-with' },
   { source: 'so-arena', target: 'tool-calling', type: 'stacks-with' },
   { source: 'so-arena', target: 'agent-harness', type: 'stacks-with' },
+
+  { source: 'foam', target: 'transformer', type: 'stacks-with' },
+  { source: 'foam', target: 'distributed-train', type: 'stacks-with' },
+  { source: 'foam', target: 'moe', type: 'stacks-with' },
+  { source: 'foam', target: 'sft', type: 'stacks-with' },
+
+  { source: 'hdm', target: 'so-arena', type: 'stacks-with' },
+  { source: 'hdm', target: 'cot', type: 'stacks-with' },
+  { source: 'hdm', target: 'route-anything', type: 'stacks-with' },
+  { source: 'hdm', target: 'coral', type: 'stacks-with' },
+  { source: 'hdm', target: 'lown', type: 'stacks-with' },
+  { source: 'hdm', target: 'speculative-decoding', type: 'stacks-with' },
+
+  { source: 'g-star', target: 'dit', type: 'alternative-to' },
+  { source: 'g-star', target: 'diffusion', type: 'alternative-to' },
+  { source: 'g-star', target: 'transformer', type: 'stacks-with' },
+  { source: 'g-star', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'g-star', target: 'speculative-decoding', type: 'stacks-with' },
 
 ]
 
