@@ -122,10 +122,22 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。',
     whyItMatters:
       '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，共同把循环 LLM 推到可训、可服务的 2026 主线。',
     yearHint: '2025–2026',
+  },
+
+  {
+    id: 'loopback-transformer',
+    en: 'Loopback Transformer',
+    zh: '回环残差循环 Transformer',
+    category: '模型架构',
+    explanation:
+      'Loopback Transformer（威斯康星大学麦迪逊分校等）：针对循环 Transformer 的残差聚合设计。参数共享并不决定「反复计算的结果如何被回读」：若存储并加权完整块输出，会把输入里已携带的历史一并重加权。Loopback 改为分别存储每次共享块写出的更新，并把循环栈的输入单独保留在系数为 1 的路径上，从而独立控制输入强度、更新总权重与各次更新之间的分配；几何衰减给出总权重与近因先验，注意力再按内容分配。在 ClimbMix 上，以匹配的训练 token 与执行深度、仅用标准 Transformer 40%–75% 的 Transformer 参数（不含词嵌入与输出头），在 191M–3B 参考尺度上获得更低验证损失，1.4B 与 3B 上十三项下游任务均值更高；191M、374M、778M 上在标准 Transformer 与七种循环残差设计中验证损失最低、十三项均值最高（arXiv 2611.07226）。',
+    whyItMatters:
+      '循环架构省参数之后，真正拉开差距的往往是残差里「存什么、怎么读」。把输入与逐次更新拆开控制，是 2026 把循环 Transformer 从「共享层反复跑」推进到可比较、可缩放残差设计的一条清晰路线。',
+    yearHint: '2026',
   },
 
   {
@@ -455,6 +467,18 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'mmflash',
+    en: 'MMFlash',
+    zh: '多模态闪速推测解码',
+    category: '推理与效率',
+    explanation:
+      'MMFlash（新加坡国立大学）：面向视觉语言模型的推测解码框架。在 DFlash 等块扩散草稿器一次前向提出整块（如 16 个）token、再由目标模型并行无损验证的基础上，先用「有无视觉输入时下一 token 分布的 KL 散度」度量每个 token 的视觉依赖，发现依赖越高接受率越低（最低四分位约 46%、最高约 22%）。训练时按视觉依赖与草稿误差上调这些难 token 的损失；草稿器不重新编码图像/视频，只读取目标模型中已融合视觉上下文的隐状态，成本不随视觉 token 数膨胀。长视频再用稀疏草稿上下文（attention sink、全部文本、跨步视觉 token 与近窗）控制约 4 万 token 级提示的草稿开销。图像基准贪心解码约 3.00×–3.05×，高并发最高约 3.58×，并优于 EAGLE-3 与 DFlash；已发布对接 Qwen3.5 / Qwen3.8 与 Gemma 4 的草稿，可在未打补丁的 SGLang / vLLM（DFLASH）上即插即用（arXiv 2611.18482）。',
+    whyItMatters:
+      '文本侧扩散草稿在视觉依赖 token 上容易连续拒稿。把「视觉依赖」写成可训练的损失重权，并让草稿器免于重编码像素，是 2026 把无损推测解码真正接到 VLM 与长视频服务的关键一步。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'loopvq',
     en: 'LoopVQ',
     zh: '循环 Transformer 亚比特 KV 量化',
@@ -685,6 +709,18 @@ export const terms: Term[] = [
       'WikiTrace：一种证据链接记忆（evidence-linked memory）。外部记忆常把过去轨迹蒸馏成简短教训供新任务复用，但教训往往只带成败标签、不附原轨迹，智能体无法核验，从而出现「记忆诱发退化」（memory-induced degradation）——加上记忆后反而做砸原本能独立做对的题。WikiTrace 把每条洞察同时链接到「该轨迹为何成败」的摘要以及原始轨迹；新任务上先从全部洞察出发，一旦某条缺少行动细节、与其他洞察冲突、或来自失败任务，就沿链接用终端工具下钻，补全细节或在行动前修正洞察。在五个智能体基准上持续优于既有记忆方法以及「只给同样洞察、不给证据链」的对照，并降低记忆诱发退化（arXiv 2611.14320）。',
     whyItMatters:
       '记忆不是越多越好：平均准确率会掩盖「记住了错误教训」。把教训绑回可核查证据，是 2026 把 Agent 记忆从「摘要仓库」推进到「可追溯、可纠错经验」的关键一步。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'mirix-2',
+    en: 'MIRIX-2.0',
+    zh: '多智能体溯源记忆系统（MIRIX-2.0）',
+    category: 'RAG与记忆',
+    explanation:
+      'MIRIX-2.0：一套无需微调、可对接开闭源模型的多智能体记忆系统。六个分型记忆 Agent 把完整记录写入向量库作为系统真源；溯源超图用引用这些行的 n 元框架索引情景与语义记忆。检索走确定性查询计划与显式证据预算，使单次问题检视的证据量不随历史膨胀。AutoDream 在写入路径之外合并重复语义锚点，并把任务会话蒸馏成技能，且不改写任何已存记录。关闭 AutoDream 时，在单跳/多跳文档问答上相对 HyperMem 分别高约 31.0 与 22.0 分，且五份计时基准均更快。LoCoMo 91.4%、LongMemEval-S 72.6%（领先次强基线 14.3 分）；作为程序记忆，在 ALFWorld、WebShop 上为相比方法中最高平均成功率，MetaClaw-Bench 49.2% 对 MetaClaw 技能库的 44.0%（arXiv 2611.12068）。',
+    whyItMatters:
+      '长期记忆要在「记得住细节」「可部署、可追溯」和「历史变长时仍便宜」之间同时成立。把完整记录与可预算的溯源索引分开，并把巩固移出写入路径，是 2026 把 Agent 记忆做成可上线系统而非一次性摘要仓库的一条高信号方案。',
     yearHint: '2026',
   },
 
@@ -1611,6 +1647,22 @@ export const edges: Edge[] = [
   { source: 'g-star', target: 'transformer', type: 'stacks-with' },
   { source: 'g-star', target: 'kv-cache', type: 'stacks-with' },
   { source: 'g-star', target: 'speculative-decoding', type: 'stacks-with' },
+
+  { source: 'loopback-transformer', target: 'looped-transformer', type: 'evolved-from' },
+  { source: 'loopback-transformer', target: 'transformer', type: 'evolved-from' },
+  { source: 'loopvq', target: 'loopback-transformer', type: 'stacks-with' },
+
+  { source: 'mmflash', target: 'speculative-decoding', type: 'evolved-from' },
+  { source: 'mmflash', target: 'flashmap', type: 'stacks-with' },
+  { source: 'mmflash', target: 'vlm', type: 'stacks-with' },
+  { source: 'mmflash', target: 'vflash', type: 'stacks-with' },
+  { source: 'mmflash', target: 'vllm', type: 'stacks-with' },
+
+  { source: 'mirix-2', target: 'memory-agent', type: 'evolved-from' },
+  { source: 'mirix-2', target: 'multi-agent', type: 'stacks-with' },
+  { source: 'mirix-2', target: 'wikitrace', type: 'stacks-with' },
+  { source: 'mirix-2', target: 'vector-db', type: 'stacks-with' },
+  { source: 'mirix-2', target: 'agent-skills', type: 'stacks-with' },
 
 ]
 
