@@ -164,6 +164,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'mova',
+    en: 'MoVA (Mixture-of-Value Attention)',
+    zh: '混合价值注意力',
+    category: '模型架构',
+    explanation:
+      'Mixture-of-Value Attention（IFM / K2-Horizon，2026-11）：把 MoE 式稀疏路由从 FFN 扩展到注意力的 value 计算。标准注意力里每个 token 只做一次线性价值投影；MoVA 准备多组价值专家，由路由器按 token 选出少数专家，对各专家输出施加 SiLU 后再加权混合得到该 token 的 value。因为混合在写入 KV Cache 之前完成，缓存体积与普通 GQA 相同，注意力计算本身不变，因而可直接兼容 FlashAttention、GQA 与稀疏注意力。K2-Horizon-MoVA-36B-A4B 约 36B 总参数、每 token 激活约 4–4.6B，同等数据与设定下预训练损失贴近 32B 稠密对照，下游差距约 1.2–3.7 分（arXiv 2611.21003）。',
+    whyItMatters:
+      '此前稀疏扩容几乎都压在前馈层。MoVA 证明注意力的 value 路径也可以成为第二条稀疏扩展轴，且不必付出额外 KV 缓存或更换注意力核，是 2026 把「专家混合」写进注意力本身的一条清晰架构。',
+    yearHint: '2026',
+  },
+
   {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
@@ -403,6 +416,19 @@ export const terms: Term[] = [
       'FOAM（Factored One-sided Adam-Moment，NAVER AI Lab，NeurIPS 2026）：SOAP 的轻量化变体，目标是在接近 AdamW 的开销下保住二阶优化器的预训练收益。两点结构简化：只保留输入侧 Kronecker 预条件、去掉输出侧因子以减少显存并省掉一次特征分解（在输出曲率近似对角时近乎无损）；再用按行/列统计的因子化 Adam 二阶矩，替代 SOAP 在旋转空间中的稠密二阶矩。在 K-FAC Fisher 与对角输出曲率假设下可精确恢复 SOAP 的稠密二阶矩，实测 K-FAC 偏离约 15%–20%、对更新影响可忽略。在 124M–760M 的 LLM 预训练上，验证损失与 SOAP、Muon 相当，优化器状态约为 SOAP 的一半，墙上时间进入 Muon 量级，并在三倍学习率范围内保持稳健；作者未报告更大尺度结果（arXiv 2611.16905）。',
     whyItMatters:
       'Shampoo / SOAP 等二阶方法更快，但优化器状态与特征分解仍贵。FOAM 说明 SOAP 的收益不必支付 SOAP 的成本，是 2026 把二阶优化推进到可实用预训练预算的一条清晰配方。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'crossrpo',
+    en: 'CrossRPO (Cross-Input Relative Policy Optimization)',
+    zh: '跨输入相对策略优化',
+    category: '训练与对齐',
+    explanation:
+      'Cross-Input Relative Policy Optimization（ViRA，2026-11）：面向超高分辨率视觉 Agent 的强化学习算法。这类 Agent 靠缩略图加局部放大作答，但只奖励最终答案时，「凭常识猜对」与「真正读到证据」得分相同，模型不必放大也能过关。CrossRPO 在对比集合上训练：同一问题配多张只在证据小区域不同、正确答案也不同的图像，只有读过证据才能做对整组；奖励整组答对，并证明不会强化仅靠常识作答的策略。用约 3500 条 ViRA-Train 对比样本训练 ViRA-9B/27B，ViRA-Bench 最高分辨率集合准确率 63.3%，高于 GRPO 的 59.3%；27B 在多数基准上超过最高思考档的 Claude Haiku 5.5 与 GPT-6-Luna（arXiv 2611.21605）。',
+    whyItMatters:
+      '可验证奖励在视觉 Agent 上会奖励「看起来对」的捷径。把相对策略优化从「同一提示的一组回答」推广到「同一问题的一组对照输入」，是 2026 逼模型真正读证据、而不是猜常见答案的一条高信号训练配方。',
     yearHint: '2026',
   },
 
@@ -1171,6 +1197,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'spillway',
+    en: 'SPILLWAY',
+    zh: 'SPILLWAY（准入与消毒分离）',
+    category: '评测与安全',
+    explanation:
+      'SPILLWAY（SAINT Machines / KAIST 等，2026-11）：面向工具调用 Agent 的提示注入运行时防御，把「入口消毒」与「出口准入」拆开、再用证据衔接。入口侧用固定规则去掉伪造聊天回合与指令状片段，并保留删掉的文本作为证据；出口侧的确定性「地板」只在副作用调用的目标（收款账户、收件人、URL 等）来自用户任务、只读工具的类型化身份字段或固定委派规则时放行，不把自由文本里的地址编入身份索引。被消毒删掉的目标不得经本地裁判恢复。在多个骨干与 AgentDojo 套件上，标准模板注入把动作重定向到攻击者目标的成功率为零，几乎不额外调用模型（arXiv 2611.07222）。',
+    whyItMatters:
+      '许多防护把「这步能不能执行」交给另一个可能读到攻击文本的语言模型。把目的地核查写成不依赖模型的类型化查找，是 2026 给邮件/支付类 Agent 提供可审计拒绝下限、并与 LLMON / Guardrails 互补的一条系统路线。',
+    yearHint: '2026',
+  },
+
   // ── 基础设施与部署 ────────────────────────────────────
   {
     id: 'vllm',
@@ -1663,6 +1702,26 @@ export const edges: Edge[] = [
   { source: 'mirix-2', target: 'wikitrace', type: 'stacks-with' },
   { source: 'mirix-2', target: 'vector-db', type: 'stacks-with' },
   { source: 'mirix-2', target: 'agent-skills', type: 'stacks-with' },
+
+  { source: 'mova', target: 'moe', type: 'evolved-from' },
+  { source: 'mova', target: 'transformer', type: 'stacks-with' },
+  { source: 'mova', target: 'gqa-mqa', type: 'stacks-with' },
+  { source: 'mova', target: 'flash-attention', type: 'stacks-with' },
+  { source: 'mova', target: 'mla', type: 'alternative-to' },
+  { source: 'mova', target: 'kv-cache', type: 'stacks-with' },
+
+  { source: 'crossrpo', target: 'grpo', type: 'evolved-from' },
+  { source: 'crossrpo', target: 'vlm', type: 'stacks-with' },
+  { source: 'crossrpo', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'crossrpo', target: 'lown', type: 'stacks-with' },
+  { source: 'crossrpo', target: 'process-reward', type: 'stacks-with' },
+
+  { source: 'spillway', target: 'prompt-injection', type: 'enables' },
+  { source: 'spillway', target: 'guardrails', type: 'stacks-with' },
+  { source: 'spillway', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'spillway', target: 'mcp', type: 'stacks-with' },
+  { source: 'spillway', target: 'llmon', type: 'stacks-with' },
+  { source: 'spillway', target: 'agent-harness', type: 'stacks-with' },
 
 ]
 
