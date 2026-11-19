@@ -900,6 +900,18 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'forceharness',
+    en: 'ForceHarness',
+    zh: '冻结模型力觉运行时壳',
+    category: 'Agent与工具',
+    explanation:
+      'ForceHarness（新加坡国立大学 Show Lab 等，2026-11）：让仅能走 API、权重冻结的前沿多模态模型在无需演示或微调的情况下使用接触力控制机器人的运行时壳。力觉校准层从腕力传感器或仅关节力矩估计手部力并去偏；中间层提供自终止力觉原语（守护运动、滑动、插入等），原语自行闭环调力并在接触事件处返回，以弥补 API 模型决策远慢于接触动力学的缺口；上层物理翻译层把力迹变成带不确定度的物理量（质量、质心偏移、摩擦、接触高度、刚度、插入推进等）作为工具结果，而不是原始力流。真机无腕力传感器的 Franka FR3 上，把 GPT-6 Astra 的零样本成功率从约 3.3% 提到约 90.0%；仿真中在 ForceBench 上提升约 17.5 个百分点，在自建 HiddenPhys（7 项隐藏物理变量的 MuJoCo 基准）上提升约 34.3 个百分点，并匹敌手写专家力控制器（arXiv 2611.21099）。',
+    whyItMatters:
+      '冻结大模型看得到图像，却读不懂也跟不上接触力。把力闭环留在壳层、把物理量当作工具返回，是 2026 让 API 级模型零样本完成插入、称重、滑动等接触任务的一条可复用 Agent Harness 路径。',
+    yearHint: '2026',
+  },
+
   // ── 多模态 ────────────────────────────────────────────
   {
     id: 'vlm',
@@ -1084,6 +1096,29 @@ export const terms: Term[] = [
       'G-STAR（Group-Scaled Token Capacity，北京大学与 Meituan LongCat 等，2026-11）：面向离散自回归图像生成的空间–组规模协同缩放框架。在乘积量化与固定名义信息预算下，组大小应随每轴空间压缩因子二次放大，从而在深度压缩时保住表示容量。据此可做到 32×、乃至有效 64× 压缩，并配合半自回归解码器：组内特征并行计算、再用轻量因果建模处理组内依赖。GSTAR-Tokenizer 在 32×（f32g16）上 ImageNet 重建 PSNR 约 25.12 dB，高于若干 16× 基线。文生图在 GenEval、DPG-Bench、PRISM、LongText-Bench 与 Qwen-Image-Bench 上与领先模型相当；1024×1024 分辨率下相对先前离散自回归模型约 20× 加速，单张在一块 NVIDIA H200 上约 2.5 秒（arXiv 2611.13004）。',
     whyItMatters:
       '离散自回归生成长期卡在「序列更长短不了、压得太狠质量掉」的权衡。让组容量与空间压缩一起放大，是 2026 把高压缩视觉 token 做成低延迟高质量图像生成的一条可复现原则。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'fastframes',
+    en: 'FastFrames',
+    zh: '交互延迟自回归视频扩散',
+    category: '多模态',
+    explanation:
+      'FastFrames（Apple AIML，2026-11）：面向交互体验的自回归视频扩散模型族。现有自回归视频模型端到端时延往往高出交互门槛一个数量级；剖析推理管线后发现，常被当作固定实现细节的 VAE 解码与 KV Cache 更新合计可占一半以上延迟，于是用轻量像素解码器与 KV refinement 替换这些瓶颈，做成两步扩散。FastFrames-S（1.3B）在单卡 B200、480p（832×480）上端到端每帧约 36 ms（约 28 RPS），质量接近慢约 7.6× 的 Causal Forcing++ 基线；FastFrames-L（14B）在 8×B200 上约 45 ms（约 22 RPS）并提升真实感。目标是输入信号到首帧 RGB 的时延低于 50 ms，从而支持相机条件与物理条件的实时可控生成；同时发布经优化的相机条件 LingBot 1.3B，约 16× 加速（arXiv 2611.23226）。',
+    whyItMatters:
+      '交互视频不再只是「生成完再看」，而是把每帧延迟压到人可跟手的阈值。把 VAE/KV 这些被认为不可动的开销拆掉，是 2026 把自回归视频扩散推进到实时世界模型与可驾驶生成的一条高信号路径。',
+    yearHint: '2026',
+  },
+  {
+    id: 'pi4',
+    en: 'π⁴ / Pi4',
+    zh: '4D 场景几何与运动基础模型',
+    category: '多模态',
+    explanation:
+      'π⁴（Pi4，上海人工智能实验室 / 上海交大 / 浙大，2026-11）：统一的 4D 场景感知基础模型。从野外未标定的 RGB 观测——单张图、无序图集或视频——一次前向同时恢复稠密几何、相机位姿与度量尺度，并在多图输入上给出 2D/3D 点轨迹与运动物体掩码。共享图像编码器后接两个任务专用的循环深度 Transformer 解码器：几何分支预测点图、位姿与尺度，再经稀疏 3D 精修；运动分支以几何特征为条件预测图像空间对应，再提升到重建的目标视图三维中。完整几何-运动系统约 0.5B 参数，不到多数基线一半；训练上下文最多 64 视图，却可在一次前向中处理数千张输入。几何评测 16 项设定上取得相比方法的最佳平均排名，跟踪与运动分割亦具竞争力（arXiv 2611.23144）。',
+    whyItMatters:
+      '4D 感知长期被拆成「先重建、再跟踪」。把几何与运动写进同一前向、同一共享骨干，是 2026 把野外多视图/视频直接变成可度量、可跟踪场景的一条紧凑基础模型路线。',
     yearHint: '2026',
   },
 
@@ -1722,6 +1757,25 @@ export const edges: Edge[] = [
   { source: 'spillway', target: 'mcp', type: 'stacks-with' },
   { source: 'spillway', target: 'llmon', type: 'stacks-with' },
   { source: 'spillway', target: 'agent-harness', type: 'stacks-with' },
+
+  { source: 'forceharness', target: 'agent-harness', type: 'evolved-from' },
+  { source: 'forceharness', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'forceharness', target: 'vla', type: 'stacks-with' },
+  { source: 'forceharness', target: 'wicl', type: 'stacks-with' },
+  { source: 'forceharness', target: 'lingbot-touch', type: 'stacks-with' },
+
+  { source: 'fastframes', target: 'diffusion', type: 'evolved-from' },
+  { source: 'fastframes', target: 'dit', type: 'stacks-with' },
+  { source: 'fastframes', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'fastframes', target: 'world-model', type: 'stacks-with' },
+  { source: 'fastframes', target: 'wave-forcing', type: 'stacks-with' },
+
+  { source: 'pi4', target: 'looped-transformer', type: 'stacks-with' },
+  { source: 'pi4', target: 'world-model', type: 'stacks-with' },
+  { source: 'pi4', target: 'l3g-world', type: 'stacks-with' },
+  { source: 'pi4', target: 'vlm', type: 'stacks-with' },
+
+
 
 ]
 
