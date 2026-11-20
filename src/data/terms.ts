@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，共同把循环 LLM 推到可训、可服务的 2026 主线。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。',
     yearHint: '2025–2026',
   },
 
@@ -174,6 +174,18 @@ export const terms: Term[] = [
       'Mixture-of-Value Attention（IFM / K2-Horizon，2026-11）：把 MoE 式稀疏路由从 FFN 扩展到注意力的 value 计算。标准注意力里每个 token 只做一次线性价值投影；MoVA 准备多组价值专家，由路由器按 token 选出少数专家，对各专家输出施加 SiLU 后再加权混合得到该 token 的 value。因为混合在写入 KV Cache 之前完成，缓存体积与普通 GQA 相同，注意力计算本身不变，因而可直接兼容 FlashAttention、GQA 与稀疏注意力。K2-Horizon-MoVA-36B-A4B 约 36B 总参数、每 token 激活约 4–4.6B，同等数据与设定下预训练损失贴近 32B 稠密对照，下游差距约 1.2–3.7 分（arXiv 2611.21003）。',
     whyItMatters:
       '此前稀疏扩容几乎都压在前馈层。MoVA 证明注意力的 value 路径也可以成为第二条稀疏扩展轴，且不必付出额外 KV 缓存或更换注意力核，是 2026 把「专家混合」写进注意力本身的一条清晰架构。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'multi-branch-transformer',
+    en: 'Multi-Branch Transformer / MBT',
+    zh: '多分支 Transformer',
+    category: '模型架构',
+    explanation:
+      'Multi-Branch Transformer（MBT，伊利诺伊大学厄巴纳-香槟分校 / 康奈尔等，2026-11）：在加宽或堆深之外，把完整 Transformer 块做并行分支组合。输入先经共享浅层，再进入独立参数化的若干顺序块分支并行计算，融合后进入共享深层。在匹配参数与训练算力、0.8B–2.1B 总参数的四档 MoE 预训练中，2 分支 Wide-Shallow 持续优于顺序 Transformer；Balanced 变体进一步提升，且分支数从 2 增至 3 或 4 时质量仍可保持。为长上下文推理引入 Joint-KV：在每一深度用各分支表示构造共享 KV 缓存。最终配方为 Balanced MBT + Joint-KV，并配合分支分组与共享缓存复用的推理引擎。拟合缩放曲线显示，标准 Transformer 需多用最多约 1.26× 的训练主体算力才能追上验证损失；全模型 KV 缓存最多约降 34%，单卡 H200 解码吞吐最多约提升 51.4%（arXiv 2611.19800）。',
+    whyItMatters:
+      '把「分支」写成与宽度、深度并列的第三条缩放轴，而不是再堆一层或再加专家。Joint-KV 把分支表示变成可共享的缓存，是 2026 在不牺牲质量的前提下同时加快长上下文解码的一条可预训练级路线。',
     yearHint: '2026',
   },
 
@@ -341,7 +353,7 @@ export const terms: Term[] = [
     zh: '权重空间编程',
     category: '训练与对齐',
     explanation:
-      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。2026-11 的 AHA（self-supervised weight-space programming）进一步表明：同一类秩一权重编辑的方向、层与神经元，都可以从模型自身采样与线性规划得到，全程不需要外部语言模型、梯度或训练循环；在 Qwen3.5-0.8B 上可达到与智能体编辑相当的效果，并在 2B 上不依赖该智能体编辑而同样提升。',
+      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。2026-11 的 AHA（self-supervised weight-space programming）进一步表明：同一类秩一权重编辑的方向、层与神经元，都可以从模型自身采样与线性规划得到，全程不需要外部语言模型、梯度或训练循环；在 Qwen3.5-0.8B 上可达到与智能体编辑相当的效果，并在 2B 上不依赖该智能体编辑而同样提升。同期 POSTECH 的工作进一步指出：当 LLM 不经梯度、直接手写目标权重时，Transformer 不再是默认骨架——在仅十条标注与沙箱的条件下，三个前沿模型都把纯文本事实编译成由固定查询过程读取的稀疏表，最高约 54.4% 测试准确率，且比同一模型写出的最准确 Transformer 少用约 1800× 参数；据此提出的联想记忆结构在 GPU 上可比同规模 Transformer 快约 17×（arXiv 2611.22055）。',
     whyItMatters:
       '把「改模型」从训练循环挪到可解释的权重手术：相对 LoRA/SFT 的参数适配，提供可审计的局部编辑与可解释性接口，也给红队/自评估打开读权重诊断通道。',
     yearHint: '2026',
@@ -429,6 +441,18 @@ export const terms: Term[] = [
       'Cross-Input Relative Policy Optimization（ViRA，2026-11）：面向超高分辨率视觉 Agent 的强化学习算法。这类 Agent 靠缩略图加局部放大作答，但只奖励最终答案时，「凭常识猜对」与「真正读到证据」得分相同，模型不必放大也能过关。CrossRPO 在对比集合上训练：同一问题配多张只在证据小区域不同、正确答案也不同的图像，只有读过证据才能做对整组；奖励整组答对，并证明不会强化仅靠常识作答的策略。用约 3500 条 ViRA-Train 对比样本训练 ViRA-9B/27B，ViRA-Bench 最高分辨率集合准确率 63.3%，高于 GRPO 的 59.3%；27B 在多数基准上超过最高思考档的 Claude Haiku 5.5 与 GPT-6-Luna（arXiv 2611.21605）。',
     whyItMatters:
       '可验证奖励在视觉 Agent 上会奖励「看起来对」的捷径。把相对策略优化从「同一提示的一组回答」推广到「同一问题的一组对照输入」，是 2026 逼模型真正读证据、而不是猜常见答案的一条高信号训练配方。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'curvdelta',
+    en: 'CurvDelta / CurvLoRA',
+    zh: '低曲率增量建模',
+    category: '训练与对齐',
+    explanation:
+      'CurvDelta（上海财经大学 / 阿里巴巴 / 南方科技大学，2026-11）：把「保住原有能力」写进参数更新的参数化本身，而不是只靠正则或事后修补。它分析保留约束在适配前模型附近的局部几何，构造一块低曲率空间，使落在其中的参数增量几乎不改变保留损失；并以 Kronecker 因子化近似曲率（K-FAC）与可分离的双侧投影，使该构造在大模型尺度可计算、可存储。同几何下的低秩变体 CurvLoRA 用于更省的适配。二者都可用于能力学习与选择性擦除。数学推理与代码生成上，在下游表现有竞争力的同时更好地保住通用能力；知识擦除主结果（TOFU、MUSE）在定向遗忘与知识保留之间优于对照，保留表现接近从零重训的参照（arXiv 2611.24654）。',
+    whyItMatters:
+      '微调与擦除最常见的副作用是「学会新的、丢掉旧的」。把保留约束做成更新空间本身的几何，而不是再加一项损失，是 2026 相对 LoRA/SFT 的一条可审计、可同时用于学习与遗忘的适配路线。',
     yearHint: '2026',
   },
 
@@ -953,7 +977,7 @@ export const terms: Term[] = [
     zh: '世界模型',
     category: '多模态',
     explanation:
-      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型；互惠世界模型把意图推理与视听实现放进同一全双工交互循环。',
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型；互惠世界模型把意图推理与视听实现放进同一全双工交互循环。WorldRuler 则用可执行的三维规则图，让交互世界在存档读档后仍服从用户自定义规则，并把规则效果准确实现到指定物体与属性。',
     whyItMatters:
       '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；实时交互世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
     yearHint: '2024–2026',
@@ -1119,6 +1143,18 @@ export const terms: Term[] = [
       'π⁴（Pi4，上海人工智能实验室 / 上海交大 / 浙大，2026-11）：统一的 4D 场景感知基础模型。从野外未标定的 RGB 观测——单张图、无序图集或视频——一次前向同时恢复稠密几何、相机位姿与度量尺度，并在多图输入上给出 2D/3D 点轨迹与运动物体掩码。共享图像编码器后接两个任务专用的循环深度 Transformer 解码器：几何分支预测点图、位姿与尺度，再经稀疏 3D 精修；运动分支以几何特征为条件预测图像空间对应，再提升到重建的目标视图三维中。完整几何-运动系统约 0.5B 参数，不到多数基线一半；训练上下文最多 64 视图，却可在一次前向中处理数千张输入。几何评测 16 项设定上取得相比方法的最佳平均排名，跟踪与运动分割亦具竞争力（arXiv 2611.23144）。',
     whyItMatters:
       '4D 感知长期被拆成「先重建、再跟踪」。把几何与运动写进同一前向、同一共享骨干，是 2026 把野外多视图/视频直接变成可度量、可跟踪场景的一条紧凑基础模型路线。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'worldruler',
+    en: 'WorldRuler',
+    zh: '可配置规则世界模型',
+    category: '多模态',
+    explanation:
+      'WorldRuler（Alaya Lab，2026-11）：面向「交互世界必须服从用户自定义规则、而不只是现实物理」的生成式世界模型。核心困难有二：规则与世界状态在存档/读档后仍须一致（Rule-State Persistence），以及规则引发的视觉变化要准确落在指定物体与属性上，即使受影响物体当时还未出现（Rule-to-Visual Realization）。它把规则定义、依赖与物体状态组织成可执行的三维规则图，并把规则执行、视频生成与感知反馈打成闭环；动态物体绑定把规则中的实体落到视觉实例，用已存状态从首次出现起约束生成。另引入物体属性状态替换与反事实重建训练，以便准确控属性、兼容外观与运动变化，并减少对无关内容的干扰。用 GTA-V 与 Habitat 自动采集标注建成 RuleVerse，覆盖规则在物体可见之前就生效的情形（arXiv 2611.24869）。',
+    whyItMatters:
+      '可玩的生成世界不只是看起来像真的，还要按玩家设定的规则持续成立。把规则写成可存可执行的图，是 2026 把世界模型从「模仿现实动态」推进到「可配置玩法」的一条清晰接口。',
     yearHint: '2026',
   },
 
@@ -1774,6 +1810,24 @@ export const edges: Edge[] = [
   { source: 'pi4', target: 'world-model', type: 'stacks-with' },
   { source: 'pi4', target: 'l3g-world', type: 'stacks-with' },
   { source: 'pi4', target: 'vlm', type: 'stacks-with' },
+
+  { source: 'multi-branch-transformer', target: 'transformer', type: 'evolved-from' },
+  { source: 'multi-branch-transformer', target: 'moe', type: 'stacks-with' },
+  { source: 'multi-branch-transformer', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'multi-branch-transformer', target: 'long-context', type: 'stacks-with' },
+  { source: 'multi-branch-transformer', target: 'inference-engine', type: 'stacks-with' },
+
+  { source: 'curvdelta', target: 'lora', type: 'stacks-with' },
+  { source: 'curvdelta', target: 'sft', type: 'stacks-with' },
+  { source: 'curvdelta', target: 'weight-space-programming', type: 'stacks-with' },
+  { source: 'curvdelta', target: 'tree-ising', type: 'stacks-with' },
+
+  { source: 'worldruler', target: 'world-model', type: 'evolved-from' },
+  { source: 'worldruler', target: 'diffusion', type: 'stacks-with' },
+  { source: 'worldruler', target: 'l3g-world', type: 'stacks-with' },
+  { source: 'worldruler', target: 'wicl', type: 'stacks-with' },
+  { source: 'worldruler', target: 'fastframes', type: 'stacks-with' },
+  { source: 'worldruler', target: 'worldfoundry', type: 'stacks-with' },
 
 
 
