@@ -190,6 +190,30 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'chorus',
+    en: 'Chorus',
+    zh: '共享 n-gram 层适应嵌入',
+    category: '模型架构',
+    explanation:
+      'Chorus（DualverseAI，2026-11）：用 n-gram 嵌入表给语言模型低成本扩容，但不再为每一层各备一张表。全网共享一套 n-gram 表，每层先按当前隐状态对分量重新缩放，再经本层独立投影读取。这样既避免「一张共享表让每层拿到同一向量」的表达不足，也去掉按层复制表的内存开销。在 20M 到 9.6B 表参数的对照中均优于 Engram、TN-gram 与 FactorEngram；1.2B 表参数时的文本预测好于 9.6B 的 FactorEngram 与 DeepSeek Engram，表体积约降 87%。配合 Ember 优化器，表优化器显存相对 AdamW 约降 99.2%（arXiv 2611.23386）。',
+    whyItMatters:
+      '查找表正在成为与 MoE 并列的「廉价容量」设计轴。把跨层共享和层内适应写在一起，是 2026 把 n-gram 表做到可大规模采用的一条关键减内存路径。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'flashmorph2',
+    en: 'FlashMorph2',
+    zh: '在策略混合注意力形变',
+    category: '模型架构',
+    explanation:
+      'FlashMorph2（字节跳动 Seed，2026-11）：把已预训练的 Transformer「形变」成全注意力与线性注意力混合的架构时，需要决定哪些层保留全注意力。先前 FlashMorph 的层选择存在两处离策略错配：连续分支插值与教师强制隐状态不同于离散混合前向，且冻结权重无法反映后续恢复训练后的表现。FlashMorph2 改为在策略评估：用候选离散混合架构自己的隐状态做端到端评估，并在恢复目标下联合优化层选择分数与模型权重。在 Qwen3 多尺度与多种线性注意力变体上，相对 FlashMorph，RULER 平均约 +2.42、LongBench 约 +1.08、回忆密集型任务约 +0.76；0.6B–8B 模型的层选择只需约 0.72–3.57 GPU 小时（arXiv 2611.24809）。',
+    whyItMatters:
+      '从零预训练混合注意力成本高，把现成开源权重转成混合骨干才是更便宜的长上下文路径。在策略选择层并与权重一起适应，是 2026 把「形变」从启发式推进到可复现、可低成本执行的一步。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'diffusion-lm',
     en: 'Diffusion LM / DLM',
     zh: '扩散语言模型',
@@ -1158,6 +1182,18 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'jeveration',
+    en: 'Jeveration',
+    zh: '系统一单次前向生成',
+    category: '多模态',
+    explanation:
+      'Jeveration（新加坡国立大学，2026-11）：把 System One 决策模型的「一次前向给出完整答案」从选项/评分扩展到图像生成。基于冻结视觉语言模型，把文生图、图生图与稠密预测都写成带类型的并行决策；所有位置共享一个随机状态以协调并行预测，使每次采样得到不同但内部一致的图像。因直接图像监督下模型容易忽略该随机状态，先学习离散图像码的分布来引导单次前向生成。同一检查点支持上述三类任务，均只需一次前向：512×512 图像约 78 ms，相对现有统一模型最多约快 122×，同时保持有竞争力的生成质量与稠密预测表现（arXiv 2611.24738）。',
+    whyItMatters:
+      '图像生成长期被自回归逐步出码与扩散迭代去噪两分。把整张图写成系统一的一次联合决策，是 2026 给统一多模态模型加上第三条、以延迟见长的生成路径，也把系统一模型从「只会做选择」推到「也能生成」。',
+    yearHint: '2026',
+  },
+
   // ── 评测与安全 ────────────────────────────────────────
   {
     id: 'llm-judge',
@@ -1262,7 +1298,7 @@ export const terms: Term[] = [
     zh: '系统一决策模型评测场',
     category: '评测与安全',
     explanation:
-      'System One models（系统一/决策模型）在单次前向中对预定义选项给出分布，不做冗长思维链生成，以便低延迟完成路由、工具选择与完成校验等常规决策。SO-Arena（NUS，2026-11）是面向此类模型的基准：2,919 道题覆盖 11 个领域、五个能力族（语义理解、知识与推理、安全与政策合规、证据评估、智能体任务完成），并人工核验参考标签是否可由模型可见输入支持；其中 9 个领域按域内难度分层，智能体任务在沙盒中交互评测，推理密集型任务还可对照 System Two。可靠性由两项互补指标刻画：选项集受控变化（如打乱顺序）下的决策稳定性，以及「正确选项缺失」时的识别能力。对 21 个模型的评测显示，扩展规模与追加推理的收益因领域而异，且能力最强的 System One 模型在可靠性上仅排第七（arXiv 2611.15777）。',
+      'System One models（系统一/决策模型）在单次前向中对预定义选项给出分布，不做冗长思维链生成，以便低延迟完成路由、工具选择与完成校验等常规决策。SO-Arena（NUS，2026-11）是面向此类模型的基准：2,919 道题覆盖 11 个领域、五个能力族（语义理解、知识与推理、安全与政策合规、证据评估、智能体任务完成），并人工核验参考标签是否可由模型可见输入支持；其中 9 个领域按域内难度分层，智能体任务在沙盒中交互评测，推理密集型任务还可对照 System Two。可靠性由两项互补指标刻画：选项集受控变化（如打乱顺序）下的决策稳定性，以及「正确选项缺失」时的识别能力。对 21 个模型的评测显示，扩展规模与追加推理的收益因领域而异，且能力最强的 System One 模型在可靠性上仅排第七（arXiv 2611.15777）。同期 Jeveration（arXiv 2611.24738）进一步表明，同一「单次前向给出完整决策」的范式也可以在一次前向中生成整张图像，而不再局限于选项与评分。',
     whyItMatters:
       '决策模型正在成为独立产品类别，但沿用生成式刷榜会漏掉「改选项就改答案」「没有正确项仍硬选」这类风险。把能力谱与决策可靠性分成两个维度，是 2026 评测路由/裁判/分类器类模型的新基准。',
     yearHint: '2026',
@@ -1828,6 +1864,20 @@ export const edges: Edge[] = [
   { source: 'worldruler', target: 'wicl', type: 'stacks-with' },
   { source: 'worldruler', target: 'fastframes', type: 'stacks-with' },
   { source: 'worldruler', target: 'worldfoundry', type: 'stacks-with' },
+
+  { source: 'chorus', target: 'transformer', type: 'stacks-with' },
+  { source: 'chorus', target: 'moe', type: 'alternative-to' },
+  { source: 'chorus', target: 'embedding', type: 'stacks-with' },
+
+  { source: 'flashmorph2', target: 'transformer', type: 'evolved-from' },
+  { source: 'flashmorph2', target: 'mamba', type: 'stacks-with' },
+  { source: 'flashmorph2', target: 'long-context', type: 'enables' },
+  { source: 'flashmorph2', target: 'muir', type: 'stacks-with' },
+
+  { source: 'jeveration', target: 'so-arena', type: 'stacks-with' },
+  { source: 'jeveration', target: 'vlm', type: 'stacks-with' },
+  { source: 'jeveration', target: 'diffusion', type: 'alternative-to' },
+  { source: 'jeveration', target: 'omni-model', type: 'stacks-with' },
 
 
 
