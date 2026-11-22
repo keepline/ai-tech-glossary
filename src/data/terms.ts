@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 则给出可在笔记本上跑的开源循环 MoE 检查点，使这条研究线有了明确的部署对象。',
     yearHint: '2025–2026',
   },
 
@@ -553,6 +553,18 @@ export const terms: Term[] = [
   },
 
   {
+    id: 'g-mtp',
+    en: 'G-MTP',
+    zh: '共享头多词元推测草稿',
+    category: '推理与效率',
+    explanation:
+      'G-MTP（2026-11）：面向推测解码的多词元预测草稿架构，在骨干 LLM 上外接一个共享的 4 层 MTP 草稿头，而不是再训一个独立小模型。它把目标模型末层激活与当前 token 嵌入注入草稿头做语义锚定，并用零拷贝 KV 交叉注意力直接查询目标模型已有的 KV 缓存，省去草稿侧 prefill；同一 4 层栈递归预测任意前瞻长度，再由目标模型一次并行验证。小模型还可选用聚类词表投影以降低全词表解码成本。在 Gemma 4 家族上，服务器端即开箱最高约 3.1×，较小模型在 H100 上最高约 2.3×、手机 GPU 上约 2.2×；域偏移下的参数高效微调使对齐草稿所需的目标前向最多约减少 1.83×（arXiv 2611.25813）。',
+    whyItMatters:
+      '生产级推测解码的瓶颈往往是「草稿既要轻、又要跟得上目标模型，还不能在新流量上掉速」。把共享 MTP 头、零拷贝交叉注意与域偏移对齐写成一套可从机房 GPU 用到手机的配方，是 2026 把 MTP 从预训练技巧落到可服务草稿器的关键一步。',
+    yearHint: '2026',
+  },
+
+  {
     id: 'loopvq',
     en: 'LoopVQ',
     zh: '循环 Transformer 亚比特 KV 量化',
@@ -798,6 +810,20 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'memfolder',
+    en: 'MemFolder',
+    zh: '结构引导的记忆折叠',
+    category: 'RAG与记忆',
+    explanation:
+      'MemFolder（2026-11）：面向长期 Agent 记忆的结构引导折叠框架，依次压低记录条数与取回上下文长度。RecordFolder 先把实体指称对齐，再按语义、实体亲和与时间链条合并相容记录，选出互补锚点、减少检索单元；ContextFolder 再把同一组记录编码成更紧凑的文本，并用核验反馈在关键事实丢失时回改编码。二者共享记忆分组，用跨记录结构同时指导合并与压缩。基于 Mem0，RecordFolder 在 LoCoMo、PersonaMem、LongMemEval 上以约一半记录保留原平均表现的 99.0%，比最强基线的保持率高 1.9 个百分点；与 ContextFolder 组合后，既有压缩方法还可进一步缩短写出记录并保住大部分表现（arXiv 2611.26427）。',
+    whyItMatters:
+      '持久助手的记忆成本正在变成瓶颈：记录一多检索变贵，取回一长 prefill 与解码也变贵。先按结构折叠、再核验后压缩，是 2026 在几乎不丢证据的前提下给 Mem0 类记忆栈减负的一条可落地路径。',
+    yearHint: '2026',
+  },
+
+
+
   // ── Agent与工具 ───────────────────────────────────────
   {
     id: 'react-agent',
@@ -898,6 +924,20 @@ export const terms: Term[] = [
       '把「领域能力」从一次性提示变成可版本化、可分发的插件单元；Anthropic 等开放 Skills 库与编辑器侧 Skills 插件后，Agent 工程从「只会调工具」走向「可组合的技能生态」，与 MCP/Harness 互补。',
     yearHint: '2025–2026',
   },
+
+  {
+    id: 'skillplumber',
+    en: 'SkillPlumber',
+    zh: '覆盖引导的技能自进化',
+    category: 'Agent与工具',
+    explanation:
+      'SkillPlumber（2026-11）：用指令级覆盖来让 Agent 修订自己的技能包。现有自进化方法常按整次运行的成败或出错位置打分，分不清失败是来自「写错了的指令」还是「写对了但没被执行的指令」。SkillPlumber 把一次运行中的每条指令标为已遵循、未遵循或未覆盖，由持久的根因分析 Agent 把标签写成修订问题并在下一次运行中验证，维护者再把跨任务调查蒸馏进共享策略库。三个基准、三种执行器上任务成功率约 64.7%–70.5%，比最强基线高 8.7–14.0 个百分点；去掉覆盖信号后，SkillsBench 上被挽回的失败约减少 20.8%（arXiv 2611.25429）。',
+    whyItMatters:
+      '技能文件已成为适配编程与计算机操作 Agent 的主接口，但「改哪一条、为什么改」长期靠整段轨迹的粗信号。把代码覆盖的思路搬到指令级，是 2026 让技能自进化可定位、可验证、少做无效修订的一条高信号路线。',
+    yearHint: '2026',
+  },
+
+
 
 
   {
@@ -1879,9 +1919,25 @@ export const edges: Edge[] = [
   { source: 'jeveration', target: 'diffusion', type: 'alternative-to' },
   { source: 'jeveration', target: 'omni-model', type: 'stacks-with' },
 
+  { source: 'g-mtp', target: 'mtp', type: 'evolved-from' },
+  { source: 'g-mtp', target: 'speculative-decoding', type: 'stacks-with' },
+  { source: 'g-mtp', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'g-mtp', target: 'vllm', type: 'stacks-with' },
 
+  { source: 'skillplumber', target: 'agent-skills', type: 'evolved-from' },
+  { source: 'skillplumber', target: 'agent-harness', type: 'stacks-with' },
+  { source: 'skillplumber', target: 'react-agent', type: 'stacks-with' },
+  { source: 'skillplumber', target: 'computer-use', type: 'stacks-with' },
+  { source: 'skillplumber', target: 'a-rsi', type: 'stacks-with' },
+
+  { source: 'memfolder', target: 'memory-agent', type: 'evolved-from' },
+  { source: 'memfolder', target: 'long-context', type: 'stacks-with' },
+  { source: 'memfolder', target: 'mirix-2', type: 'stacks-with' },
+  { source: 'memfolder', target: 'wikitrace', type: 'stacks-with' },
+  { source: 'memfolder', target: 'rag', type: 'stacks-with' },
 
 ]
+
 
 
 
