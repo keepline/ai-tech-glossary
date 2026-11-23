@@ -225,6 +225,30 @@ export const terms: Term[] = [
     yearHint: '2024–2026',
   },
 
+  {
+    id: 'canon-layers',
+    en: 'Canon Layers',
+    zh: 'Canon 层（局部 token 混合）',
+    category: '模型架构',
+    explanation:
+      'Canon Layers（Physics of Language Models 4.2，2026-11）：在注意力或线性模块之外，用残差短因果卷积做局部 token 混合——每个通道对当前及前 3 个 token 做可学习加权，并可插在层内最多四个位置（A：注意力/循环模块前；B：其输入投影后；C：MLP 前；D：MLP 两路投影后、门控相乘前）。先前短卷积多见于 Mamba/GLA 的 B 位，Canon-ABCD 只增加约 0.07–0.15% 参数。作者在 1.3B–8B、1–2T Nemotron-CC token 上做 64 次从头预训练：学术尺度（1.3B/100B token）上架构差异几乎被调参抹平，到 1–2T token 才可测；LlamaCanon 在 8B 上以约少 30% 的预训练 token 达到相同 MMLU。加上 Canon 后，最简的 gated linear attention 可对齐 Gated DeltaNet、并在 8B/1T 上超过 Mamba2。与此同时，标准基准打平并不能保证 500 token 上下文检索，简单两跳问题仍接近随机（arXiv 2611.24963）。',
+    whyItMatters:
+      '线性注意力与 Transformer 的争论缺的是可复现的大规模对照，而不是更多排行榜分数。Canon 把「近邻混合」写成几乎零成本的插件，并提醒：基准持平可能掩盖基本的上下文检索失败。',
+    yearHint: '2025–2026',
+  },
+
+  {
+    id: 'dloop',
+    en: 'dLoop',
+    zh: '循环扩散语言模型（dLoop）',
+    category: '模型架构',
+    explanation:
+      'dLoop（2026-11）：把循环深度引入扩散语言模型（DLM）的方法。并行去噪里每次只敢提交一部分 token，既有加速工作多半只改提交规则或置信度学习，但单次去噪前向里，提示、已提交 token 与仍被掩码位置的信息往往还没充分融合。dLoop 把预训练 DLM 拆成 Prelude–Loop–Coda 三段，在同一部分掩码状态上反复套用参数共享的中间块，增加潜在计算而不推进去噪时间表，让未提交位置继续交互后再决定提交。在 GSM8K、MATH、MBPP 与 HumanEval 上取得最高或并列最高准确率；按循环成本折算 tokens per forward pass 后，四项上都同时优于 Fast-dLLM 的准确率与吞吐，并在多数对比中优于 dParallel，准确率全面高于 d3LLM（arXiv 2611.26275）。',
+    whyItMatters:
+      '扩散语言模型的速度–质量杠杆不一定要更复杂的提交启发式。把循环 Transformer 的「多花潜在算力再做决定」搬到 DLM，是 2026 把 recurrent-depth 从自回归扩展到并行生成的一条清晰路线。',
+    yearHint: '2026',
+  },
+
   // ── 训练与对齐 ────────────────────────────────────────
   {
     id: 'sft',
@@ -377,7 +401,7 @@ export const terms: Term[] = [
     zh: '权重空间编程',
     category: '训练与对齐',
     explanation:
-      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。2026-11 的 AHA（self-supervised weight-space programming）进一步表明：同一类秩一权重编辑的方向、层与神经元，都可以从模型自身采样与线性规划得到，全程不需要外部语言模型、梯度或训练循环；在 Qwen3.5-0.8B 上可达到与智能体编辑相当的效果，并在 2B 上不依赖该智能体编辑而同样提升。同期 POSTECH 的工作进一步指出：当 LLM 不经梯度、直接手写目标权重时，Transformer 不再是默认骨架——在仅十条标注与沙箱的条件下，三个前沿模型都把纯文本事实编译成由固定查询过程读取的稀疏表，最高约 54.4% 测试准确率，且比同一模型写出的最准确 Transformer 少用约 1800× 参数；据此提出的联想记忆结构在 GPU 上可比同规模 Transformer 快约 17×（arXiv 2611.22055）。',
+      'Weight-Space Programming（MIT CSAIL，Takehi/Teoh/Zhang/Khattab，2026-11）：前沿 LLM 可直接读写神经网络权重——不经梯度下降/优化器，围绕自然语言规格诊断行为、一次性修补失败模式，甚至从零写出小型策略。例：仅编辑 Qwen3.5-0.8B 约 0.016% 权重，即可把 MATH-500 从 7.9% 提到 48.1%。2026-11 的 AHA（self-supervised weight-space programming）进一步表明：同一类秩一权重编辑的方向、层与神经元，都可以从模型自身采样与线性规划得到，全程不需要外部语言模型、梯度或训练循环；在 Qwen3.5-0.8B 上可达到与智能体编辑相当的效果，并在 2B 上不依赖该智能体编辑而同样提升。同期 POSTECH 的工作进一步指出：当 LLM 不经梯度、直接手写目标权重时，Transformer 不再是默认骨架——在仅十条标注与沙箱的条件下，三个前沿模型都把纯文本事实编译成由固定查询过程读取的稀疏表，最高约 54.4% 测试准确率，且比同一模型写出的最准确 Transformer 少用约 1800× 参数；据此提出的联想记忆结构在 GPU 上可比同规模 Transformer 快约 17×（arXiv 2611.22055）。稍晚的 Self-Rewriting（arXiv 2611.21885）进一步把编辑对象换成模型自己：开源 27B 模型在只有前向、无梯度的前提下诊断失败并改写自身权重，在未见过的题上准确率提高约 6.6 分，连续八轮编辑只升不降，并能在不读取原始权重的情况下，把被破坏的自身副本在未见过的图像任务上恢复到原准确率的 80% 以上。',
     whyItMatters:
       '把「改模型」从训练循环挪到可解释的权重手术：相对 LoRA/SFT 的参数适配，提供可审计的局部编辑与可解释性接口，也给红队/自评估打开读权重诊断通道。',
     yearHint: '2026',
@@ -822,7 +846,17 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
-
+  {
+    id: 'grepmem',
+    en: 'GrepMem',
+    zh: '无损 grep 记忆（GrepMem）',
+    category: 'RAG与记忆',
+    explanation:
+      'GrepMem（2026-11）：面向长程 LLM Agent 的无损、无索引记忆。工作上下文接近上限时仍可摘要压缩以便继续推理，但完整交互（消息、工具调用、输出与摘要）写入一份只追加的纯文本日志，需要细节时由智能体按需调用 grep_history，用正则在日志里检索，无需嵌入、向量索引、记忆抽取或额外模型。作者用强化学习在五种上下文管理策略下训练 Qwen3.5-9B，并在多问研究会话、长流回忆与轨迹问答等五类任务上评估：ContextBench 准确率约 95–97%，有损基线最高约 21%；在 BCP-Multi 上比 SUPO 摘要高约 8.8 个百分点，并随输入流变长仍留在准确率–token 成本的帕累托前沿（arXiv 2611.25123）。',
+    whyItMatters:
+      '记忆系统常在「还不知道未来要什么」时就决定丢掉什么。把完整日志留给 grep、把工作上下文留给摘要，是 2026 给复杂记忆框架提供的一条廉价、无损基线——也更接近编程 Agent 已在用的文件搜索习惯。',
+    yearHint: '2026',
+  },
 
   // ── Agent与工具 ───────────────────────────────────────
   {
@@ -1935,6 +1969,20 @@ export const edges: Edge[] = [
   { source: 'memfolder', target: 'mirix-2', type: 'stacks-with' },
   { source: 'memfolder', target: 'wikitrace', type: 'stacks-with' },
   { source: 'memfolder', target: 'rag', type: 'stacks-with' },
+
+  { source: 'canon-layers', target: 'transformer', type: 'stacks-with' },
+  { source: 'canon-layers', target: 'mamba', type: 'stacks-with' },
+  { source: 'canon-layers', target: 'rope', type: 'stacks-with' },
+
+  { source: 'dloop', target: 'diffusion-lm', type: 'evolved-from' },
+  { source: 'dloop', target: 'looped-transformer', type: 'stacks-with' },
+  { source: 'dloop', target: 'frequency-aware-remasking', type: 'stacks-with' },
+
+  { source: 'grepmem', target: 'memory-agent', type: 'evolved-from' },
+  { source: 'grepmem', target: 'memfolder', type: 'alternative-to' },
+  { source: 'grepmem', target: 'vector-db', type: 'alternative-to' },
+  { source: 'grepmem', target: 'tool-calling', type: 'stacks-with' },
+  { source: 'grepmem', target: 'long-context', type: 'stacks-with' },
 
 ]
 
