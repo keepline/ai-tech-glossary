@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 则给出可在笔记本上跑的开源循环 MoE 检查点，使这条研究线有了明确的部署对象。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 则把「先训标准基座再改造成 Loop」推到 750B 旗舰，说明循环深度已进入可规模化的产品路径。',
     yearHint: '2025–2026',
   },
 
@@ -246,6 +246,31 @@ export const terms: Term[] = [
       'dLoop（2026-11）：把循环深度引入扩散语言模型（DLM）的方法。并行去噪里每次只敢提交一部分 token，既有加速工作多半只改提交规则或置信度学习，但单次去噪前向里，提示、已提交 token 与仍被掩码位置的信息往往还没充分融合。dLoop 把预训练 DLM 拆成 Prelude–Loop–Coda 三段，在同一部分掩码状态上反复套用参数共享的中间块，增加潜在计算而不推进去噪时间表，让未提交位置继续交互后再决定提交。在 GSM8K、MATH、MBPP 与 HumanEval 上取得最高或并列最高准确率；按循环成本折算 tokens per forward pass 后，四项上都同时优于 Fast-dLLM 的准确率与吞吐，并在多数对比中优于 dParallel，准确率全面高于 d3LLM（arXiv 2611.26275）。',
     whyItMatters:
       '扩散语言模型的速度–质量杠杆不一定要更复杂的提交启发式。把循环 Transformer 的「多花潜在算力再做决定」搬到 DLM，是 2026 把 recurrent-depth 从自回归扩展到并行生成的一条清晰路线。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'mhc',
+    en: 'mHC / cmHC',
+    zh: '流形约束超连接（mHC / cmHC）',
+    category: '模型架构',
+    explanation:
+      'Hyper-Connections（HC，Zhu et al., 2025）把残差从单流扩成 n 条流，并用可学习矩阵做流间混合，但无约束混合会破坏恒等映射，在深层放大或衰减信号。DeepSeek 的 mHC（Manifold-Constrained Hyper-Connections，arXiv 2512.24880，2025-12）把混合矩阵投影到 Birkhoff 多面体（双随机矩阵，行与列和均为 1），常用 Sinkhorn-Knopp，以恢复有界的恒等映射性质；在 DeepSeek-V3 风格 MoE 的 3B/9B/27B 预训练中显示可扩展，n=4 时额外训练时间约 6.7%。cmHC（Contraction for mHC，中国电信星辰实验室等，arXiv 2611.27193，2026-11）指出双随机约束下的混合权衡：矩阵靠近多面体顶点时各流近乎独立（欠混合），靠近均匀重心时各流难以区分（过混合）。它用几何收缩把多面体向内部收缩、不增加参数，并只在浅层做较温和的收缩（如 λ=0.97、前 K=2 层），以抑制欠混合又避免浅层过混合；在稠密与 MoE 多尺度实验中优于 mHC / mHC-lite，昇腾 NPU 融合算子可将超连接时延最多降低约 44.8%。',
+    whyItMatters:
+      '残差怎么「加」正在重新成为架构主轴：先把多流混合约束回可训练的流形，再用几何收缩调节混合强度，是 2026 从 HC 走到可规模预训练的一条清晰演进。',
+    yearHint: '2025–2026',
+  },
+
+  {
+    id: 'memonce',
+    en: 'MemOnce',
+    zh: '一次缓存记忆架构（MemOnce）',
+    category: '模型架构',
+    explanation:
+      'MemOnce（南京大学等，arXiv 2611.27973，2026-11）：面向长程持续交互的原生记忆架构。标准 Transformer 按层按 token 堆积 KV，显存随上下文线性增长、计算二次增长；纯线性状态又容易丢掉细粒度细节。MemOnce 做两件事：记忆编解码只缓存最终层隐状态的一小段（每段末尾 1/r，如 r=8）作为紧凑记忆，需要时再解码回各层 KV；记忆稀疏注意力对每次持续输入只计算一次、并跨层复用检索下标，再只对解码出的 KV 做注意力。默认骨架按阶段穿插线性块（如 Gated DeltaNet）与记忆稀疏注意力。在预训练与对已有模型的后训练改造上均优于对照；把 Qwen3.5-4B 改造成 MemOnce 后，1M 上下文上记忆状态缓存约降 1313×、prefill 延迟约降 6.9×，吞吐提升约 3.5×，综合记忆基准约 +5.77%，并称是首个在总体上超过全上下文基线的原生记忆方法。',
+    whyItMatters:
+      '长上下文不必把整条多层 KV 常驻 GPU。把记忆「只写一次、只检索一次、按需解码成 KV」，把持久记忆与激活显存拆开，是 2026 把记忆从外挂检索推进到模型内状态的一条工程化路线。',
     yearHint: '2026',
   },
 
@@ -1983,6 +2008,17 @@ export const edges: Edge[] = [
   { source: 'grepmem', target: 'vector-db', type: 'alternative-to' },
   { source: 'grepmem', target: 'tool-calling', type: 'stacks-with' },
   { source: 'grepmem', target: 'long-context', type: 'stacks-with' },
+
+  { source: 'mhc', target: 'transformer', type: 'evolved-from' },
+  { source: 'mhc', target: 'moe', type: 'stacks-with' },
+  { source: 'mhc', target: 'distributed-train', type: 'stacks-with' },
+
+  { source: 'memonce', target: 'transformer', type: 'evolved-from' },
+  { source: 'memonce', target: 'kv-cache', type: 'alternative-to' },
+  { source: 'memonce', target: 'long-context', type: 'enables' },
+  { source: 'memonce', target: 'memory-agent', type: 'stacks-with' },
+  { source: 'memonce', target: 'mamba', type: 'stacks-with' },
+  { source: 'memonce', target: 'grepmem', type: 'alternative-to' },
 
 ]
 
