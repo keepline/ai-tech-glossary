@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 则把「先训标准基座再改造成 Loop」推到 750B 旗舰，说明循环深度已进入可规模化的产品路径。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。',
     yearHint: '2025–2026',
   },
 
@@ -271,6 +271,19 @@ export const terms: Term[] = [
       'MemOnce（南京大学等，arXiv 2611.27973，2026-11）：面向长程持续交互的原生记忆架构。标准 Transformer 按层按 token 堆积 KV，显存随上下文线性增长、计算二次增长；纯线性状态又容易丢掉细粒度细节。MemOnce 做两件事：记忆编解码只缓存最终层隐状态的一小段（每段末尾 1/r，如 r=8）作为紧凑记忆，需要时再解码回各层 KV；记忆稀疏注意力对每次持续输入只计算一次、并跨层复用检索下标，再只对解码出的 KV 做注意力。默认骨架按阶段穿插线性块（如 Gated DeltaNet）与记忆稀疏注意力。在预训练与对已有模型的后训练改造上均优于对照；把 Qwen3.5-4B 改造成 MemOnce 后，1M 上下文上记忆状态缓存约降 1313×、prefill 延迟约降 6.9×，吞吐提升约 3.5×，综合记忆基准约 +5.77%，并称是首个在总体上超过全上下文基线的原生记忆方法。',
     whyItMatters:
       '长上下文不必把整条多层 KV 常驻 GPU。把记忆「只写一次、只检索一次、按需解码成 KV」，把持久记忆与激活显存拆开，是 2026 把记忆从外挂检索推进到模型内状态的一条工程化路线。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'loopres',
+    en: 'LoopRes / Loop Residuals',
+    zh: '循环残差（LoopRes）',
+    category: '模型架构',
+    explanation:
+      'LoopRes（新加坡国立大学等，arXiv 2611.31094，2026-11）：把已预训练 LLM 改造成循环深度模型的残差设计。循环 Transformer 的收益过去多半要靠从头训练，把现成模型微调成循环通常只比普通 SFT 略好。LoopRes 建立在 Attention Residuals 上，让每一层直接关注更早各圈的输出；由于这些输出是同一组层的迭代、彼此越来越难区分，它为每个来源配备可训练的 loop-aware key 来编码圈次结构身份，并把残差窗口限制在最近 W 圈，迫使每圈在最近迭代上增量构建，同时限制计算与通信开销。在 3 个模型家族的 6 个已预训练 LLM、9 项基准上取得稳定收益：2× 计算下，Qwen3-1.7B-Base 相对 SFT 提升 29.1%，超过当时最强基线增益的两倍；收益可延伸到约 30B，且 1.7B 到 8B 上随计算增加的斜率高于 SFT，长输出所需计算更少。',
+    whyItMatters:
+      '循环深度若只能从零训练，就很难接到已有基座上。LoopRes 把「先训标准模型再改造成循环」从边际增益变成可扩展的微调路径，与 GLM-5.4 等旗舰改造路线互补。',
     yearHint: '2026',
   },
 
@@ -529,6 +542,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'aprm',
+    en: 'APRM / Attention Process Reward Model',
+    zh: '注意力过程奖励模型（APRM）',
+    category: '训练与对齐',
+    explanation:
+      'Attention Process Reward Model（APRM，浙江大学与华为诺亚等，arXiv 2611.30627，2026-11）：针对「文本奖励别名」——不同的内部推理过程可能写出几乎相同的思维链，因而拿到同一奖励。结果奖励（ORM）只看最终对错，过程奖励（PRM）给中间文本步骤打分，二者都只监督外化轨迹。APRM 改用隐状态与平均注意力图为内部推理模式打分，模型约 46M 参数，以成对排序与反事实注意力扰动目标训练；其奖励接入 GRPO 等组相对强化学习，并引入组内中心化的内部优势，再定期用新 rollout 刷新以应对分布偏移。接入代表性 RL 方法后，平均 pass@8 提升 2.88%。',
+    whyItMatters:
+      '推理强化学习若只奖励「模型说了什么」，会把不同的内部计算当成同一种过程。把过程奖励下沉到注意力与隐状态，是 2026 从文本轨迹监督走向「奖励模型如何思考」的一条清晰路径。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -758,6 +784,19 @@ export const terms: Term[] = [
       'Zero-or-T thinking（零或T思考）：同一模型要么在单次前向的隐式推理中直接给出决策、不生成任何 token，要么付出 T 个 token 做完整自回归推理，中间不再「少想一点」。Hybrid Decision Model（HDM，华为诺亚等，2026-11）用冻结骨干同时承担快/慢两种模式，并由轻量自路由块在生成开始前估计「思考的价值」（慢模式相对快模式的期望增益）；仅当该价值超过请求级价格 λ 时才升级到慢模式。无逐步标签的回合制智能体任务上，用 CDPO（Calibrated Decision Policy Optimisation）从回合回报训练该路由块。JevBench 上 HDM-4B 得分 0.857、对照 Jev 的 0.851，中位延迟 0.179 秒对 0.652 秒（约 -72.5%）；在 MiniWoB 上 HDM-27B 把 token 成本降低约 80.1%（arXiv 2611.16961）。',
     whyItMatters:
       '自适应推理通常仍要逐 token 写出答案，只是缩短或切换模式。把「要不要想」做成可定价的快慢路由，并把快模式收成真正的零生成决策，是 2026 把系统一决策与系统二推理写进同一模型的一条高信号路径。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'nohaircache',
+    en: 'NoHairCache',
+    zh: '一次校准幂律 KV 淘汰（NoHairCache）',
+    category: '推理与效率',
+    explanation:
+      'NoHairCache（Xiang，arXiv 2611.29006，2026-11）：用单一幂律衰减指数把两类主流 KV 缓存淘汰统一起来。它对每个 token 打分 s_i = A_i · (t−i)^{−α}，其中 A_i 是累积注意力、α 是年龄惩罚：α=0 退化为按历史重要性累积的 H2O，α→∞ 则靠近按近因滑窗的 StreamingLLM（后者还额外硬编码了注意力汇点补丁）。论文指出 α 是模型的内禀属性：在单一语料上校准一次即可跨域迁移。在 WikiText 上一次校准后，Qwen2.5-1.5B-Instruct 的容许区间约为 [0.556, 0.822]，并与五个 410M–1.5B 模型的困惑度最优区一致。无需按数据集聚调，即可在 WikiText、PG19 与 arXiv 上取得低于 H2O 与 StreamingLLM 的困惑度（三项均 p<0.05，预算 512 时相对 StreamingLLM 约降 0.06–0.10 PPL）；在 NarrativeQA 上保留 25% 缓存时，仍保住全缓存准确率的 98.2%，对照 StreamingLLM 的 91.1%。',
+    whyItMatters:
+      'KV 淘汰长期被写成「留重要的」或「留最近的」两套配方。把二者收成可校准的一个指数，并证明这个指数跟任务无关、跟模型有关，是 2026 把长上下文缓存管理从启发式推进到可迁移校准的一条路线。',
     yearHint: '2026',
   },
 
@@ -2019,6 +2058,21 @@ export const edges: Edge[] = [
   { source: 'memonce', target: 'memory-agent', type: 'stacks-with' },
   { source: 'memonce', target: 'mamba', type: 'stacks-with' },
   { source: 'memonce', target: 'grepmem', type: 'alternative-to' },
+
+  { source: 'loopres', target: 'looped-transformer', type: 'evolved-from' },
+  { source: 'loopres', target: 'loopback-transformer', type: 'stacks-with' },
+  { source: 'loopres', target: 'sft', type: 'stacks-with' },
+  { source: 'loopres', target: 'transformer', type: 'evolved-from' },
+
+  { source: 'aprm', target: 'process-reward', type: 'evolved-from' },
+  { source: 'aprm', target: 'grpo', type: 'stacks-with' },
+  { source: 'aprm', target: 'cot', type: 'stacks-with' },
+  { source: 'aprm', target: 'rlhf', type: 'stacks-with' },
+
+  { source: 'nohaircache', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'nohaircache', target: 'long-context', type: 'enables' },
+  { source: 'nohaircache', target: 'paged-attention', type: 'stacks-with' },
+  { source: 'nohaircache', target: 'lowram', type: 'stacks-with' },
 
 ]
 
