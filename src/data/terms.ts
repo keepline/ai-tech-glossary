@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。清华 Loop-Behind Decoding（2026-11）进一步拆开多圈收益：在 Dory-4B 上，额外循环的主要价值是给后续 token 留下更深的 Loop KV，而不是先把当前 token 再精炼一遍再读出；因此可在第一圈后读出，并将剩余圈与后续 token 流水并行，以接近一圈的 KV 与延迟保住多圈精度。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。Loop-Behind 则表明，多圈服务不必把剩余循环留在当前 token 的关键路径上。',
     yearHint: '2025–2026',
   },
 
@@ -284,6 +284,19 @@ export const terms: Term[] = [
       'LoopRes（新加坡国立大学等，arXiv 2611.31094，2026-11）：把已预训练 LLM 改造成循环深度模型的残差设计。循环 Transformer 的收益过去多半要靠从头训练，把现成模型微调成循环通常只比普通 SFT 略好。LoopRes 建立在 Attention Residuals 上，让每一层直接关注更早各圈的输出；由于这些输出是同一组层的迭代、彼此越来越难区分，它为每个来源配备可训练的 loop-aware key 来编码圈次结构身份，并把残差窗口限制在最近 W 圈，迫使每圈在最近迭代上增量构建，同时限制计算与通信开销。在 3 个模型家族的 6 个已预训练 LLM、9 项基准上取得稳定收益：2× 计算下，Qwen3-1.7B-Base 相对 SFT 提升 29.1%，超过当时最强基线增益的两倍；收益可延伸到约 30B，且 1.7B 到 8B 上随计算增加的斜率高于 SFT，长输出所需计算更少。',
     whyItMatters:
       '循环深度若只能从零训练，就很难接到已有基座上。LoopRes 把「先训标准模型再改造成循环」从边际增益变成可扩展的微调路径，与 GLM-5.4 等旗舰改造路线互补。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'loom-attention',
+    en: 'Loom Attention / LoomFormer',
+    zh: '织机注意力（LoomFormer）',
+    category: '模型架构',
+    explanation:
+      'Loom Attention（彩云等，arXiv 2611.30634，2026-11）：让 Transformer 在每个 token 上动态重连内部回路。每个头在水平方向对 token 做注意力的同时，还对更早各头的输出做垂直注意力，以构造自己的 query、key 与 value。垂直注意力用归一化、门控的线性注意力，读写一个形状为 [d_k, d] 的逐 token 矩阵记忆，作为第二条残差流。由此得到 LoomFormer：向量流与矩阵流分工承担内容与控制。相对 HC/mHC、MUDDFormer、AttnRes 等按层共享路由端口、头间连线秩被限制在 1（或 3）的做法，它为每个头、每个 token 生成端口，连线秩可达 2n，而每 token 状态（3D）比四流 mHC（4D）更小。在多种规模与训练预算下，LoomFormer 可对齐超过 3× 训练算力的标准 Transformer，以及约 1.7–2.8× 算力的上述残差流基线。同样在 300B token、仅多约 2% FLOPs 时，LoomPythia-2.8B 的下游平均增益约为 mHC-Pythia-2.8B 相对 Pythia-2.8B 增益的 1.6 倍，0-shot 对齐 Pythia-12B（59.9），5-shot（61.6 对 60.8）与 FLAN 困惑度（6.94 对 7.26）还更好，深层非汇点活跃头从约 20% 升至 74.4%。',
+    whyItMatters:
+      '残差流混合若按层共享端口，头与头之间能学到的线路会很快触顶。把「重连」下沉到每个 token、每个头，并用矩阵记忆做第二条残差流，是 2026 在 mHC 之后继续挖残差与回路重连的一条高信号架构路线。',
     yearHint: '2026',
   },
 
@@ -555,6 +568,19 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+
+  {
+    id: 'rlvb',
+    en: 'RLVB / Reinforcement Learning with Verifiable Beliefs',
+    zh: '可验证信念强化学习（RLVB）',
+    category: '训练与对齐',
+    explanation:
+      'Reinforcement Learning with Verifiable Beliefs（RLVB，南洋理工大学等，arXiv 2611.32884，2026-11）：针对智能体的「懒惰」——证据还不够就提交答案，甚至在自己写下的信念仍列出多种可能时就提交。纯结果奖励无法教会「何时提交」，因为蒙对与证据充分的正确答案得分相同。训练时模拟器可在每一步计算答案的精确后验：只要后验仍允许多种答案，就奖励继续搜集证据；一旦证据充分，再奖励提交。该奖励不依赖裁判、critic 或奖励模型，也不去读智能体自己写的信念行。论文同时提出 Pro Worlds：智能体只通过小窗口观察大世界的视觉谜题基准。在三个视觉语言模型、三项基准（其中两项训练未见）共九组设定上，RLVB 平均提升 17.1%；同样用结果奖励时，GRPO 与 PPO 平均反而低于基座。相对带 LLM 裁判过程奖励的 PPO，RLVB 平均高 9.3%，GPU 小时约少 1.6 倍。训练后智能体在三项上于证据充分时作答的比例分别为 51%、12%、74%，对照基座的 8%、0.4%、36%；证据不足且信念仍有多种可能时，提交率仅为 0.1–2.2%，对照基座的 3–68%。',
+    whyItMatters:
+      '可验证奖励通常只看最终对错，教不会「证据够了再回答」。把模拟器里可计算的后验当成何时提交的监督信号，是 2026 把智能体从「先猜再碰运气」拉向「按自己的信念行动」的一条训练路线。',
+    yearHint: '2026',
+  },
+
   // ── 推理与效率 ────────────────────────────────────────
   {
     id: 'speculative-decoding',
@@ -797,6 +823,19 @@ export const terms: Term[] = [
       'NoHairCache（Xiang，arXiv 2611.29006，2026-11）：用单一幂律衰减指数把两类主流 KV 缓存淘汰统一起来。它对每个 token 打分 s_i = A_i · (t−i)^{−α}，其中 A_i 是累积注意力、α 是年龄惩罚：α=0 退化为按历史重要性累积的 H2O，α→∞ 则靠近按近因滑窗的 StreamingLLM（后者还额外硬编码了注意力汇点补丁）。论文指出 α 是模型的内禀属性：在单一语料上校准一次即可跨域迁移。在 WikiText 上一次校准后，Qwen2.5-1.5B-Instruct 的容许区间约为 [0.556, 0.822]，并与五个 410M–1.5B 模型的困惑度最优区一致。无需按数据集聚调，即可在 WikiText、PG19 与 arXiv 上取得低于 H2O 与 StreamingLLM 的困惑度（三项均 p<0.05，预算 512 时相对 StreamingLLM 约降 0.06–0.10 PPL）；在 NarrativeQA 上保留 25% 缓存时，仍保住全缓存准确率的 98.2%，对照 StreamingLLM 的 91.1%。',
     whyItMatters:
       'KV 淘汰长期被写成「留重要的」或「留最近的」两套配方。把二者收成可校准的一个指数，并证明这个指数跟任务无关、跟模型有关，是 2026 把长上下文缓存管理从启发式推进到可迁移校准的一条路线。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'loop-behind',
+    en: 'Loop-Behind Decoding',
+    zh: '循环后置解码（Loop-Behind）',
+    category: '推理与效率',
+    explanation:
+      'Loop-Behind Decoding（LB Decoding，清华大学，2026-11）：循环语言模型多圈解码的调度方法。通常认为多圈的价值是给当前 token 更多计算以打磨下一词预测，但每一圈也会写下供后续 token 阅读的 Loop KV，原生解码把这两种效应绑在一起。作者在 Dory-4B 的 12 项基准上把「当前 token 读出前跑几圈」与「它读到的历史 Loop KV 有多深」拆开：一圈读出但读取第 2 圈 Loop KV，平均 47.3%，接近原生两圈的 47.7%，收回 7.2 分增益中的 6.8 分；两圈读出却只读第 1 圈 KV，仅 41.3%，只比原生一圈的 40.5% 高 0.8 分。因此多出来的圈，主要是为后续 token 准备更深的 KV，而不是先把自己再精炼一遍再读出。LB 据此在第一圈后就读出当前 token，并把剩余圈与后续 token 流水并行，无需重训：KV 缓存保持一圈大小，逐步延迟接近一圈，精度接近多圈；在 Huginn-0125 上也可对齐 16 圈精度，并约有 1.75× 加速。',
+    whyItMatters:
+      '循环模型的「加深」不一定要堆在当前 token 的关键路径上。把剩余循环挪到后续步骤并行，是 2026 让循环 LLM 在几乎不增加 KV 的前提下，接近一圈延迟、保住多圈质量的一条服务侧路线。',
     yearHint: '2026',
   },
 
@@ -2073,6 +2112,20 @@ export const edges: Edge[] = [
   { source: 'nohaircache', target: 'long-context', type: 'enables' },
   { source: 'nohaircache', target: 'paged-attention', type: 'stacks-with' },
   { source: 'nohaircache', target: 'lowram', type: 'stacks-with' },
+
+  { source: 'loom-attention', target: 'transformer', type: 'evolved-from' },
+  { source: 'loom-attention', target: 'mhc', type: 'alternative-to' },
+  { source: 'loom-attention', target: 'gqa-mqa', type: 'stacks-with' },
+
+  { source: 'rlvb', target: 'process-reward', type: 'alternative-to' },
+  { source: 'rlvb', target: 'grpo', type: 'alternative-to' },
+  { source: 'rlvb', target: 'rlhf', type: 'evolved-from' },
+  { source: 'rlvb', target: 'react-agent', type: 'stacks-with' },
+
+  { source: 'loop-behind', target: 'looped-transformer', type: 'stacks-with' },
+  { source: 'loop-behind', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'loop-behind', target: 'loopres', type: 'stacks-with' },
+  { source: 'loop-behind', target: 'speculative-decoding', type: 'stacks-with' },
 
 ]
 
