@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。清华 Loop-Behind Decoding（2026-11）进一步拆开多圈收益：在 Dory-4B 上，额外循环的主要价值是给后续 token 留下更深的 Loop KV，而不是先把当前 token 再精炼一遍再读出；因此可在第一圈后读出，并将剩余圈与后续 token 流水并行，以接近一圈的 KV 与延迟保住多圈精度。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。清华 Loop-Behind Decoding（2026-11）进一步拆开多圈收益：在 Dory-4B 上，额外循环的主要价值是给后续 token 留下更深的 Loop KV，而不是先把当前 token 再精炼一遍再读出；因此可在第一圈后读出，并将剩余圈与后续 token 流水并行，以接近一圈的 KV 与延迟保住多圈精度。ByteDance Seed 与华中科技大学等提出的 Mixture-of-Loops Transformer（MoLT，arXiv 2611.34923）则把跨圈连接从整条残差流改成以 KV 为记忆的 MoLA，并用 U 形编解码在 400B token 预训练上相对 OLMo3 取得约 1.7× 的验证 CE token 效率。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。Loop-Behind 则表明，多圈服务不必把剩余循环留在当前 token 的关键路径上。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。Loop-Behind 则表明，多圈服务不必把剩余循环留在当前 token 的关键路径上。MoLT 则表明，循环层之间该传递的也许不是整条残差流，而是可选择复用的 KV 记忆。',
     yearHint: '2025–2026',
   },
 
@@ -297,6 +297,19 @@ export const terms: Term[] = [
       'Loom Attention（彩云等，arXiv 2611.30634，2026-11）：让 Transformer 在每个 token 上动态重连内部回路。每个头在水平方向对 token 做注意力的同时，还对更早各头的输出做垂直注意力，以构造自己的 query、key 与 value。垂直注意力用归一化、门控的线性注意力，读写一个形状为 [d_k, d] 的逐 token 矩阵记忆，作为第二条残差流。由此得到 LoomFormer：向量流与矩阵流分工承担内容与控制。相对 HC/mHC、MUDDFormer、AttnRes 等按层共享路由端口、头间连线秩被限制在 1（或 3）的做法，它为每个头、每个 token 生成端口，连线秩可达 2n，而每 token 状态（3D）比四流 mHC（4D）更小。在多种规模与训练预算下，LoomFormer 可对齐超过 3× 训练算力的标准 Transformer，以及约 1.7–2.8× 算力的上述残差流基线。同样在 300B token、仅多约 2% FLOPs 时，LoomPythia-2.8B 的下游平均增益约为 mHC-Pythia-2.8B 相对 Pythia-2.8B 增益的 1.6 倍，0-shot 对齐 Pythia-12B（59.9），5-shot（61.6 对 60.8）与 FLAN 困惑度（6.94 对 7.26）还更好，深层非汇点活跃头从约 20% 升至 74.4%。',
     whyItMatters:
       '残差流混合若按层共享端口，头与头之间能学到的线路会很快触顶。把「重连」下沉到每个 token、每个头，并用矩阵记忆做第二条残差流，是 2026 在 mHC 之后继续挖残差与回路重连的一条高信号架构路线。',
+    yearHint: '2026',
+  },
+
+
+  {
+    id: 'molt',
+    en: 'MoLT / Mixture-of-Loops Transformer',
+    zh: '混合循环 Transformer（MoLT）',
+    category: '模型架构',
+    explanation:
+      'Mixture-of-Loops Transformer（MoLT，华中科技大学 / ByteDance Seed / 多伦多大学，arXiv 2611.34923，2026-11）：针对循环 Transformer「跨圈该传递什么」的架构。其 Mixture-of-Loops Attention（MoLA）把 KV 当作可选择复用的记忆，在深度与循环之间共享。MoLT-R 保留残差流并跨圈读取局部 KV，偏表达力；MoLT-KV 每圈从嵌入重新起步，用当前圈局部 KV 加上前圈更早位置的记忆 KV，去掉同位置跨圈依赖，再配合 loop forcing 实现可并行训练，并解锁单次遍历、可超出训练圈数的 Mixture-of-Loops（MoL）解码。U 形的 U-MoLT 把记忆构建与预测读出分开，可跳过未使用的解码遍历且不改预测。400B token 预训练中，U-MoLT 在 700M / 1.5B 稠密与 3B MoE 上均超过 OLMo3，700M 上验证交叉熵 token 效率约 1.7×，3B MoE 的 10 域困惑度改善 0.75、10 项任务准确率提升 2.1 个百分点；对 Qwen3.5-0.8B-Base 续训 100B token 后，11 个域 CE 全部下降，平均 token 效率约 1.4×。推理时 U-MoLT 配 MoL-Hybrid-2，在约 113M 的 S 规模上延迟与非循环 OLMo3 基本持平（996.6 vs 1,000.6 ms）。已公开代码。',
+    whyItMatters:
+      '循环架构的瓶颈往往不在「再跑一圈」，而在圈与圈之间传递的是残差还是可选择复用的 KV。把跨圈记忆写成 MoLA，并让解码不必与训练圈数绑死，是 2026 把循环 Transformer 推向可预训练、可服务效率的一条清晰路线。',
     yearHint: '2026',
   },
 
@@ -1012,10 +1025,21 @@ export const terms: Term[] = [
     zh: '计算机操作 Agent',
     category: 'Agent与工具',
     explanation:
-      '能看屏幕、控制鼠标键盘或 DOM，在真实桌面/浏览器中完成多步任务的 Agent。把 GUI 本身当作「通用工具接口」。',
+      '能看屏幕、控制鼠标键盘或 DOM，在真实桌面/浏览器中完成多步任务的 Agent。把 GUI 本身当作「通用工具接口」。现有实现多以离散截图感知；NightWatch 等持续感知框架指出，VLM 推理延迟会使屏幕状态在动作落地前过期，需要独立的轻量监视器来同步动态界面。',
     whyItMatters:
-      '绕过「没有 API 就无法自动化」的限制，代表 Agent 能力边界的一次显著外扩。',
+      '绕过「没有 API 就无法自动化」的限制，代表 Agent 能力边界的一次显著外扩。感知是否及时，已与「看懂屏幕」同样成为落地瓶颈。',
     yearHint: '2024–2026',
+  },
+  {
+    id: 'nightwatch',
+    en: 'NightWatch',
+    zh: 'NightWatch 持续感知守护',
+    category: 'Agent与工具',
+    explanation:
+      'NightWatch（arXiv 2611.28947，2026-11）：为计算机操作 Agent 提供即插即用的持续感知框架，不必改原 Agent 的模型、提示或动作空间。现有 VLM 智能体以离散截图感知环境，推理延迟会使观察在动作落地前过期。NightWatch 接入 0.8B 的 System-1 监视模型 NightWatch-0.8B，对界面做流式监控，并用固定问题库在一次编码后给出概率（而非生成文本），由规则完成三类干预：推理中途界面剧变则中断并按新状态重启（Interrupt）；动作发出前目标失效则作废（Void）；动作后不再死等固定时延，而是在界面安定后唤醒（Wake）。在 OSWorld-Verified 上，非推理墙钟时间下降约 33%、浪费时间下降约 53%，任务成功率基本持平；在动态网页基准 DynaCU-Bench 上，成功率由 39.5% 升至 44.2%，并优于同等截图输入的被动监视基线。已发布模型与代码。',
+    whyItMatters:
+      '计算机操作 Agent 的上限往往不只是「看懂屏幕」，而是感知是否及时。用轻量 System-1 监视器补上慢推理留下的感知—动作缺口，是 2026 把桌面/网页智能体从「回合式截图」推进到持续环境觉察的一条可落地路径。',
+    yearHint: '2026',
   },
   {
     id: 'multi-agent',
@@ -1333,6 +1357,17 @@ export const terms: Term[] = [
       'FastFrames（Apple AIML，2026-11）：面向交互体验的自回归视频扩散模型族。现有自回归视频模型端到端时延往往高出交互门槛一个数量级；剖析推理管线后发现，常被当作固定实现细节的 VAE 解码与 KV Cache 更新合计可占一半以上延迟，于是用轻量像素解码器与 KV refinement 替换这些瓶颈，做成两步扩散。FastFrames-S（1.3B）在单卡 B200、480p（832×480）上端到端每帧约 36 ms（约 28 RPS），质量接近慢约 7.6× 的 Causal Forcing++ 基线；FastFrames-L（14B）在 8×B200 上约 45 ms（约 22 RPS）并提升真实感。目标是输入信号到首帧 RGB 的时延低于 50 ms，从而支持相机条件与物理条件的实时可控生成；同时发布经优化的相机条件 LingBot 1.3B，约 16× 加速（arXiv 2611.23226）。',
     whyItMatters:
       '交互视频不再只是「生成完再看」，而是把每帧延迟压到人可跟手的阈值。把 VAE/KV 这些被认为不可动的开销拆掉，是 2026 把自回归视频扩散推进到实时世界模型与可驾驶生成的一条高信号路径。',
+    yearHint: '2026',
+  },
+  {
+    id: 'deltarae',
+    en: 'DeltaRAE',
+    zh: '导数分词视频表征自编码器',
+    category: '多模态',
+    explanation:
+      'DeltaRAE（Google / Google DeepMind 等，arXiv 2611.33886，2026-11）：面向长视频生成的因果表征自编码器。现有视频分词器常对每帧分配同样多的 token，且不少全局分词依赖未来帧，导致生成只能拼接短片段。DeltaRAE 的 derivative tokenization（导数分词）借鉴视频编码：周期性锚帧编码完整的 primitive tokens，其余帧只用少量导数 token 描述相对过去的变化；因果编解码器读取冻结的预训练图像编码器（实验中为 DINOv2），前缀的编码与重建都不依赖后续帧，从而支持在潜空间按块流式生成。在 UCF-101 与 Kinetics-600 上，用标准 Diffusion Transformer 在其潜变量上训练，可与领先视频分词器竞争；相对每帧密铺 patch token，16 帧片段的分词器 GFLOPs 约减半，一分钟视频的 token 数约为原来的 1/18.8。分词器可在一分钟视频上端到端训练，其潜变量上的生成器能推出完整一分钟；去掉预训练编码器、仅保留同等 token 预算时，多数视频会在 15 秒内崩溃。',
+    whyItMatters:
+      '长视频生成的瓶颈常常在分词器，而不只在生成器。按「变化」而不是按「每帧同等配额」分配 token，并把编解码做成因果、可读冻结语义编码器，是 2026 把潜空间视频生成从数秒片段拉到一分钟连贯 rollout 的一条高信号路径。',
     yearHint: '2026',
   },
   {
@@ -2126,6 +2161,20 @@ export const edges: Edge[] = [
   { source: 'loop-behind', target: 'kv-cache', type: 'stacks-with' },
   { source: 'loop-behind', target: 'loopres', type: 'stacks-with' },
   { source: 'loop-behind', target: 'speculative-decoding', type: 'stacks-with' },
+
+  { source: 'molt', target: 'looped-transformer', type: 'evolved-from' },
+  { source: 'molt', target: 'kv-cache', type: 'stacks-with' },
+  { source: 'molt', target: 'moe', type: 'stacks-with' },
+  { source: 'molt', target: 'loopres', type: 'alternative-to' },
+
+  { source: 'nightwatch', target: 'computer-use', type: 'stacks-with' },
+  { source: 'nightwatch', target: 'vlm', type: 'stacks-with' },
+  { source: 'nightwatch', target: 'agent-harness', type: 'stacks-with' },
+
+  { source: 'deltarae', target: 'dit', type: 'stacks-with' },
+  { source: 'deltarae', target: 'diffusion', type: 'stacks-with' },
+  { source: 'deltarae', target: 'world-model', type: 'enables' },
+  { source: 'deltarae', target: 'fastframes', type: 'stacks-with' },
 
 ]
 
