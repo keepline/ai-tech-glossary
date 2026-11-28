@@ -41,7 +41,7 @@ export const terms: Term[] = [
     zh: 'Diffusion Transformer',
     category: '模型架构',
     explanation:
-      '用 Transformer 替换传统 U-Net 作为扩散模型去噪骨干的架构。缩放规律更清晰，已成为文生图 / 文生视频主流方案的基础。',
+      '用 Transformer 替换传统 U-Net 作为扩散模型去噪骨干的架构。缩放规律更清晰，已成为文生图 / 文生视频主流方案的基础。DyLoMo-DiT（2026-11）把权重共享循环与稀疏专家接到 DiT：中间层按噪声水平动态复用，在匹配的参数与算力预算下相对 DiT / DiT-MoE 降低 FID，并以约 1.05B 激活参数在 GenEval 上超过 12B 激活的 FLUX.1。',
     whyItMatters:
       '把语言模型的扩展经验迁移到生成式视觉，是 Sora 类视频模型与开源图像模型的共同底座。',
     yearHint: '2023–2026',
@@ -122,9 +122,9 @@ export const terms: Term[] = [
     zh: '循环深度 Transformer',
     category: '模型架构',
     explanation:
-      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。清华 Loop-Behind Decoding（2026-11）进一步拆开多圈收益：在 Dory-4B 上，额外循环的主要价值是给后续 token 留下更深的 Loop KV，而不是先把当前 token 再精炼一遍再读出；因此可在第一圈后读出，并将剩余圈与后续 token 流水并行，以接近一圈的 KV 与延迟保住多圈精度。ByteDance Seed 与华中科技大学等提出的 Mixture-of-Loops Transformer（MoLT，arXiv 2611.34923）则把跨圈连接从整条残差流改成以 KV 为记忆的 MoLA，并用 U 形编解码在 400B token 预训练上相对 OLMo3 取得约 1.7× 的验证 CE token 效率。',
+      'Looped Transformer（亦称 recurrent-depth / Universal Transformer）：用同一组共享层反复迭代，以「循环次数 R」换有效深度，参数量几乎不增。ARLoop（2026-11）把 Attention Residuals 接到循环深度上，用滑动窗口深度注意力选择复用哪些中间残差；1.2B、0.5T token、R=3 的开源检查点可在多项基准上超过 Huginn-3.5B，并与更大预算的非循环模型接近（arXiv 2611.05234）。Dory1.0-4B（arXiv 2611.03998）进一步把弹性深度写成单一检查点、可变循环块圈数，并在 RLVR 中用难度感知的 loop curriculum；解码侧 last-loop KV caching 使 KV 足迹约等于 1 圈。同期还有 Best-of-Depth、Ouro 等变体。Loopback Transformer（arXiv 2611.07226）则把残差改成分别存储各次块更新，用几何衰减与注意力独立控制输入强度和更新回读。Late Entry（arXiv 2611.24576）走与早退相反的解码策略：新 token 跳过前若干圈，直接进入最后 K 圈、对着已完成的深层上下文 KV 缓存计算；轻量微调对齐入口隐状态后，再以 Wake verification 让已提交 token 在关键路径外补完 1→T 圈。Ouro-2.6B（T=4）上 K=2 的贪心精确加速约 5.2×，Huginn-3.5B 在 T=64 时可达约 8.4×。Thinking Machines 于 2026-11-20 开源的 Inkling 2 Mini（Apache 2.0）把循环深度落到可本地部署的量产 MoE：24 层、26.4B 总参 / 3.4B 激活，中间 12 层共享权重循环 3 次（等效约 48 层应用、约 5.4B 有效激活），约 20GB NVFP4 足迹、上下文至 1M；循环中层带来约 1.51–1.91× 计算等价增益，并在 DeepSWE v1.1（48.2%）等开源 100B 以下模型中领先。Z.ai 于 2026-11-23 发布的 GLM-5.4 是首个旗舰级 Loop Transformer：在已预训练的 750B GLM-5 基座上续训（而非从零训练循环模型），78 层中的中间 28 层共享权重循环 2 次（约 106 次层应用）。为在该尺度稳住激活并控制部署成本，它引入按 token 的门控渐进更新（第一圈保守写残差、第二圈再放开）、跨圈稀疏 KV 共享叠加第二圈独立滑动窗口，以及复用第一圈稀疏注意力索引。30B 等参对照中，约多 10% 训练算力即可在数学、科学与长上下文上取得明显增益（如 AIME25 19.17→30.42、GPQA-Diamond 47.58→56.26），且输出常缩短约 10–14%。官方称其智力水平可对标 2T–3T 参数量模型，但尚未公布完整同尺度对照；已知限制是模型易陷入过长的「马拉松式思考」循环。LoopRes（NUS 等，arXiv 2611.31094，2026-11）则专门增强这条更便宜的「把已预训练模型改造成循环」路径：在 Attention Residuals 上加入可训练的 loop-aware key，并把残差窗口限制在最近 W 圈，使循环微调的收益显著超过普通 SFT。清华 Loop-Behind Decoding（2026-11）进一步拆开多圈收益：在 Dory-4B 上，额外循环的主要价值是给后续 token 留下更深的 Loop KV，而不是先把当前 token 再精炼一遍再读出；因此可在第一圈后读出，并将剩余圈与后续 token 流水并行，以接近一圈的 KV 与延迟保住多圈精度。ByteDance Seed 与华中科技大学等提出的 Mixture-of-Loops Transformer（MoLT，arXiv 2611.34923）则把跨圈连接从整条残差流改成以 KV 为记忆的 MoLA，并用 U 形编解码在 400B token 预训练上相对 OLMo3 取得约 1.7× 的验证 CE token 效率。Floodgates（EPFL 等，arXiv 2611.33896）则进一步表明浅圈不只预测当前词，还能对后续多个 mask token 做并行草稿，再以深圈做无损验证，在多种循环模型上最高约 7.5× 加速。',
     whyItMatters:
-      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。Loop-Behind 则表明，多圈服务不必把剩余循环留在当前 token 的关键路径上。MoLT 则表明，循环层之间该传递的也许不是整条残差流，而是可选择复用的 KV 记忆。',
+      '把「加深」从堆参数改成可调的测试时算力轴；与 MoE 的专家扩容互补。ARLoop 的残差复用、Dory 的弹性深度与 last-loop KV 缓存，加上 Late Entry 用深层上下文缓存替代被跳过的前几圈，共同把循环 LLM 推到可训、可服务的 2026 主线。Inkling 2 Mini 给出可本地部署的开源循环 MoE 检查点；GLM-5.4 把「先训标准基座再改造成 Loop」推到 750B 旗舰；LoopRes 则让开源基座的循环微调真正拉开与普通 SFT 的差距。Loop-Behind 则表明，多圈服务不必把剩余循环留在当前 token 的关键路径上。MoLT 则表明，循环层之间该传递的也许不是整条残差流，而是可选择复用的 KV 记忆。Floodgates 则把浅圈做成多词元并行草稿，让循环模型的自投机解码不再只是「少圈写一个、多圈验一个」。',
     yearHint: '2025–2026',
   },
 
@@ -310,6 +310,18 @@ export const terms: Term[] = [
       'Mixture-of-Loops Transformer（MoLT，华中科技大学 / ByteDance Seed / 多伦多大学，arXiv 2611.34923，2026-11）：针对循环 Transformer「跨圈该传递什么」的架构。其 Mixture-of-Loops Attention（MoLA）把 KV 当作可选择复用的记忆，在深度与循环之间共享。MoLT-R 保留残差流并跨圈读取局部 KV，偏表达力；MoLT-KV 每圈从嵌入重新起步，用当前圈局部 KV 加上前圈更早位置的记忆 KV，去掉同位置跨圈依赖，再配合 loop forcing 实现可并行训练，并解锁单次遍历、可超出训练圈数的 Mixture-of-Loops（MoL）解码。U 形的 U-MoLT 把记忆构建与预测读出分开，可跳过未使用的解码遍历且不改预测。400B token 预训练中，U-MoLT 在 700M / 1.5B 稠密与 3B MoE 上均超过 OLMo3，700M 上验证交叉熵 token 效率约 1.7×，3B MoE 的 10 域困惑度改善 0.75、10 项任务准确率提升 2.1 个百分点；对 Qwen3.5-0.8B-Base 续训 100B token 后，11 个域 CE 全部下降，平均 token 效率约 1.4×。推理时 U-MoLT 配 MoL-Hybrid-2，在约 113M 的 S 规模上延迟与非循环 OLMo3 基本持平（996.6 vs 1,000.6 ms）。已公开代码。',
     whyItMatters:
       '循环架构的瓶颈往往不在「再跑一圈」，而在圈与圈之间传递的是残差还是可选择复用的 KV。把跨圈记忆写成 MoLA，并让解码不必与训练圈数绑死，是 2026 把循环 Transformer 推向可预训练、可服务效率的一条清晰路线。',
+    yearHint: '2026',
+  },
+
+  {
+    id: 'dylomo-dit',
+    en: 'DyLoMo-DiT',
+    zh: '动态循环混合专家扩散 Transformer',
+    category: '模型架构',
+    explanation:
+      'DyLoMo-DiT（Dynamic Looped MoE DiT，arXiv 2611.30844，2026-11）：把循环共享层与稀疏专家接到 Diffusion Transformer。网络分成前、中、后三段，中间一段权重共享并按噪声水平重复 r 次：推荐日程在低噪声（t<500）跑 3 圈、高噪声只跑 1 圈，均匀采样步上平均两圈；每圈残差写入乘 1/r，避免共享权重在多次访问中累加，且每圈重新路由，同一 token 可在不同圈选不同专家。由此把「加深」从堆参数改成可调度的有效深度，把省下的参数预算留给更多专家或更多不共享层。ImageNet 256×256 上，在匹配的参数与前向算力预算下，相对 DiT 的 FID 约降 11%–24%，相对 DiT-MoE 约降 36%–56%；缩放后的文生图模型以 1.05B 激活参数取得 0.714 GenEval，高于 12B 激活的 FLUX.1（0.673）。已公开代码与权重。',
+    whyItMatters:
+      'DiT 把宽度、深度和每步算力绑在一起，MoE-DiT 扩参却仍对每个噪声水平使用同样深度。按噪声分配循环圈数，是 2026 把循环 Transformer 的「测试时加深」搬到扩散去噪轨迹上、用更少激活参数追平更大文生图模型的一条清晰路线。',
     yearHint: '2026',
   },
 
@@ -852,6 +864,18 @@ export const terms: Term[] = [
     yearHint: '2026',
   },
 
+  {
+    id: 'floodgates',
+    en: 'Floodgates',
+    zh: '闸门式循环多词元草稿（Floodgates）',
+    category: '推理与效率',
+    explanation:
+      'Floodgates（EPFL 等，arXiv 2611.33896，2026-11）：面向循环语言模型的无损自投机解码。循环模型可用浅圈做草稿、深圈做验证，且草稿仍使用全部共享参数；既有方法却往往每圈只草稿一个 token，或要很多圈才有可接受的接受率，还常靠流水线并行而必须维护多份按深度划分的前缀缓存。Floodgates 在最新生成 token 后追加一块 mask token 槽位，只用一层共享块（配仅在草稿时激活的低秩适配器）并行预测后续多个 token，并让这些槽位读取验证阶段已算好的深层前缀缓存，而不是第一圈缓存；深圈再一次并行验证。对圈数很多的模型，还可在更长窗口上做若干次弹性精炼。跨 7 个模型、5 项基准、多种批大小以及贪心与采样解码，它在多数设定下是当时最快的无损方法，最高约 7.5× 加速。已公开代码。',
+    whyItMatters:
+      '循环模型的浅圈不只会「更快写出当前词」，还能一次并行看见后面几个词，并把已验证的深层缓存借给草稿用。把自投机从「少圈写一个、多圈验一个」升级成多词元并行草稿，是 2026 让循环 LLM 接近生产级解码速度的一条高信号路径。',
+    yearHint: '2026',
+  },
+
   // ── RAG与记忆 ─────────────────────────────────────────
   {
     id: 'rag',
@@ -1202,7 +1226,7 @@ export const terms: Term[] = [
     zh: '世界模型',
     category: '多模态',
     explanation:
-      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型；互惠世界模型把意图推理与视听实现放进同一全双工交互循环。WorldRuler 则用可执行的三维规则图，让交互世界在存档读档后仍服从用户自定义规则，并把规则效果准确实现到指定物体与属性。',
+      '学习环境动态的预测模型：根据观测与动作（或相机/文本条件）预见下一状态或生成可交互的时空内容。2025–2026 在视频/交互世界生成与具身 VLA 中成为核心组件；2026 起 Genie 类与 L3G 等潜在三维记忆，以及 Cosmos 3 Nano、PAN 2 等开源交互/物理世界模型，把闭环仿真推到可用；世界-动作模型则进一步把「预测下一世界」与「输出可执行动作」写进同一模型；互惠世界模型把意图推理与视听实现放进同一全双工交互循环。WorldRuler 则用可执行的三维规则图，让交互世界在存档读档后仍服从用户自定义规则，并把规则效果准确实现到指定物体与属性。ShowNow（NUS Show Lab，2026-11）则用播放间隙预先准备多条动作条件的未来潜变量，把交互世界模型的输入到上屏中位延迟从约 620 ms 压到约 208 ms。',
     whyItMatters:
       '连接「会看会说」的 VLM 与「会做」的 VLA/Agent：没有可复用的世界动态，长程规划与仿真迁移就很难扩展；实时交互世界生成把世界模型从控制论概念推到生成式媒体与机器人共用的技术层。',
     yearHint: '2024–2026',
@@ -1357,6 +1381,17 @@ export const terms: Term[] = [
       'FastFrames（Apple AIML，2026-11）：面向交互体验的自回归视频扩散模型族。现有自回归视频模型端到端时延往往高出交互门槛一个数量级；剖析推理管线后发现，常被当作固定实现细节的 VAE 解码与 KV Cache 更新合计可占一半以上延迟，于是用轻量像素解码器与 KV refinement 替换这些瓶颈，做成两步扩散。FastFrames-S（1.3B）在单卡 B200、480p（832×480）上端到端每帧约 36 ms（约 28 RPS），质量接近慢约 7.6× 的 Causal Forcing++ 基线；FastFrames-L（14B）在 8×B200 上约 45 ms（约 22 RPS）并提升真实感。目标是输入信号到首帧 RGB 的时延低于 50 ms，从而支持相机条件与物理条件的实时可控生成；同时发布经优化的相机条件 LingBot 1.3B，约 16× 加速（arXiv 2611.23226）。',
     whyItMatters:
       '交互视频不再只是「生成完再看」，而是把每帧延迟压到人可跟手的阈值。把 VAE/KV 这些被认为不可动的开销拆掉，是 2026 把自回归视频扩散推进到实时世界模型与可驾驶生成的一条高信号路径。',
+    yearHint: '2026',
+  },
+  {
+    id: 'shownow',
+    en: 'ShowNow',
+    zh: '细粒度推测流式世界模型（ShowNow）',
+    category: '多模态',
+    explanation:
+      'ShowNow（NUS Show Lab，arXiv 2611.34693，2026-11）：面向交互世界模型的细粒度推测流式框架。实时吞吐并不等于低输入延迟：粗粒度生成块会推迟动作更新，输入到达后再生成又把计算加在响应路径上。ShowNow 利用已提交帧播放期间的空闲算力，预先准备 1 到 8 条动作条件的未来潜变量；输入一到就提交单条匹配的潜变量（single-latent commitment），未覆盖的动作再即时重生成。为训练多条可切换的续写，作者构造了从同一状态出发的配对多未来数据集，并用共享历史的树状执行与融合提交降低准备成本。单卡 H100 上，5B 模型可在 480p、16 fps 下同时准备 8 条未来；在 ViZDoom 上，完整部署把输入到上屏的中位延迟从约 620 ms 降到约 208 ms，匹配策略实验中重启空拍（restart empty ticks）从 1.56% 降到 0.09%（约降 94%）。已公开代码与权重。',
+    whyItMatters:
+      '交互世界模型的瓶颈不只是「能不能跑到实时帧率」，还有「动作改变后画面何时跟上」。把播放间隙变成多未来推测准备，是 2026 把世界模型从可观看推到可跟手交互的一条与 FastFrames 互补的路径。',
     yearHint: '2026',
   },
   {
@@ -2175,6 +2210,23 @@ export const edges: Edge[] = [
   { source: 'deltarae', target: 'diffusion', type: 'stacks-with' },
   { source: 'deltarae', target: 'world-model', type: 'enables' },
   { source: 'deltarae', target: 'fastframes', type: 'stacks-with' },
+
+  { source: 'dylomo-dit', target: 'dit', type: 'evolved-from' },
+  { source: 'dylomo-dit', target: 'moe', type: 'stacks-with' },
+  { source: 'dylomo-dit', target: 'looped-transformer', type: 'stacks-with' },
+  { source: 'dylomo-dit', target: 'diffusion', type: 'stacks-with' },
+
+  { source: 'floodgates', target: 'looped-transformer', type: 'stacks-with' },
+  { source: 'floodgates', target: 'speculative-decoding', type: 'evolved-from' },
+  { source: 'floodgates', target: 'mtp', type: 'stacks-with' },
+  { source: 'floodgates', target: 'lora', type: 'stacks-with' },
+  { source: 'floodgates', target: 'loop-behind', type: 'alternative-to' },
+  { source: 'floodgates', target: 'kv-cache', type: 'stacks-with' },
+
+  { source: 'shownow', target: 'world-model', type: 'stacks-with' },
+  { source: 'shownow', target: 'fastframes', type: 'stacks-with' },
+  { source: 'shownow', target: 'speculative-decoding', type: 'stacks-with' },
+  { source: 'shownow', target: 'speculative-listening', type: 'stacks-with' },
 
 ]
 
